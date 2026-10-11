@@ -164,3 +164,9 @@ header.site .bar{position:static}.chip.dn{position:absolute;left:50%;transform:t
 @media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
 
 
+.thumb.ro{cursor:default}.thumb.ro span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thumb img{max-width:100%;max-height:130px;box-shadow:0 1px 6px rgba(0,0,0,.2)}
+.thumbs .more{grid-column:1/-1;margin:0;color:var(--brown-l);text-align:center}
+.prev{margin-top:.8rem}.prev small{color:var(--brown-l);font-size:1rem}
+.txtprev{background:#fff;border:1px solid var(--sand);border-radius:12px;padding:.8rem;max-height:260px;overflow:auto;white-space:pre-wrap;font-size:.9rem;margin:.8rem 0}
+.limits{margin:.6rem 0 0;color:var(--brown-l);font-size:1rem;text-align:center;line-height:1.35}.limits b{color:var(--brown)}

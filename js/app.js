@@ -423,6 +423,60 @@
     }
   };
 
+  var LIMITS = {
+    merge: "No fixed file count, but everything is processed in your device's memory, so very large batches (over roughly 500 MB in total) can be slow. Password-protected PDFs aren't supported.",
+    split: "Works well up to a few hundred pages. Password-protected PDFs aren't supported. Many output files are offered as one ZIP.",
+    "remove-pages": "Works well up to a few hundred pages. You can't remove every page. Password-protected PDFs aren't supported.",
+    "extract-pages": "Works well up to a few hundred pages. Password-protected PDFs aren't supported.",
+    organize: "Works well up to a few hundred pages; every page is shown as a thumbnail. Password-protected PDFs aren't supported.",
+    rotate: "Works well up to a few hundred pages. Rotation is in steps of 90°. Password-protected PDFs aren't supported.",
+    compress: "Light keeps text selectable; Balanced and Strong turn pages into images (text is no longer selectable). If the result isn't smaller, we keep your original. Password-protected PDFs aren't supported.",
+    "pdf-to-jpg": "Long PDFs at 300 dpi need a lot of memory – pick a lower quality if your browser slows down. Results are offered as one ZIP.",
+    "jpg-to-pdf": "Accepts JPG, PNG, WebP, GIF and BMP. Very large photos use a lot of memory, so convert big batches in parts.",
+    "pdf-to-gif": "Up to 200 pages per GIF, 100–1200 px wide. GIFs are limited to 256 colours, so photos look grainier than in the PDF.",
+    "gif-to-pdf": "Up to 300 frames (use “Keep every Nth frame” for longer GIFs). Frames become JPG pages; transparency turns white.",
+    watermark: "Latin letters only (no emoji or non-Latin scripts). The same watermark goes on every page. Password-protected PDFs aren't supported.",
+    "page-numbers": "Numbers are added to every page in Helvetica. Password-protected PDFs aren't supported.",
+    "pdf-to-text": "Only text that is really inside the PDF is extracted. Scanned pages (pictures of text) can't be read because OCR isn't included."
+  };
+
+  var MAXTHUMBS = 60;
+  function thumbCell(label, el) {
+    return h("div", { class: "thumb ro" }, [h("div", { class: "pic" }, [el]), h("span", { text: label, title: label })]);
+  }
+  function imgCell(src, label) { return thumbCell(label, h("img", { src: src, alt: label })); }
+  // Renders PDF pages as thumbnails: mode "all" = every page, "first" = page 1 only (label is the file name)
+  function pdfThumbs(grid, file, mode, label, alive) {
+    return pdfJsDoc(file).then(function (pdf) {
+      var n = mode === "first" ? 1 : Math.min(pdf.numPages, MAXTHUMBS), seq = Promise.resolve();
+      Array.apply(null, Array(n)).forEach(function (_, i) {
+        var cv = h("canvas");
+        grid.appendChild(thumbCell(mode === "first" ? label : label + (i + 1), cv));
+        seq = seq.then(function () { return alive() ? pdf.getPage(i + 1) : null; }).then(function (page) {
+          if (!page) return;
+          var v0 = page.getViewport({ scale: 1 }), v = page.getViewport({ scale: 150 / Math.max(v0.width, v0.height) });
+          cv.width = v.width; cv.height = v.height;
+          return page.render({ canvasContext: cv.getContext("2d"), viewport: v }).promise;
+        });
+      });
+      if (mode !== "first" && pdf.numPages > n) grid.appendChild(h("p", { class: "more", text: "+ " + (pdf.numPages - n) + " more pages not shown" }));
+      return seq;
+    });
+  }
+  function resPreview(grid, files, urls) {
+    var pdfs = files.filter(function (f) { return /\.pdf$/i.test(f.name); }), seq = Promise.resolve(), always = function () { return true; };
+    if (pdfs.length === 1 && files.length === 1) { pdfThumbs(grid, pdfs[0].blob, "all", "Page ", always).catch(function () {}); return; }
+    files.slice(0, MAXTHUMBS).forEach(function (f) {
+      if (/\.pdf$/i.test(f.name)) seq = seq.then(function () { return pdfThumbs(grid, f.blob, "first", f.name, always); }).catch(function () {});
+      else if (/\.(png|jpe?g|gif)$/i.test(f.name)) { var u = URL.createObjectURL(f.blob); urls.push(u); grid.appendChild(imgCell(u, f.name)); }
+      else if (/\.txt$/i.test(f.name)) {
+        var pre = h("pre", { class: "txtprev", text: "…" }); grid.className = ""; grid.appendChild(pre);
+        f.blob.text().then(function (t) { pre.textContent = t.slice(0, 2500) + (t.length > 2500 ? "\n…" : ""); });
+      }
+    });
+    if (files.length > MAXTHUMBS) grid.appendChild(h("p", { class: "more", text: "+ " + (files.length - MAXTHUMBS) + " more files not shown" }));
+  }
+
   function finishCompress(f, blob, pages) {
     var better = blob.size < f.size;
     return loadDoc(f).then(function (d) { return d.getPageCount(); }).catch(function () { return pages; }).then(function (n) {
@@ -458,7 +512,9 @@
     var list = h("ul", { class: "files" }), optBox = h("div", { class: "opts" }), orgBox = h("div"), status = h("div", { class: "status" });
     var prog = h("progress", { max: "1", value: "0", hidden: "" });
     var go = h("button", { class: "btn", text: T.btn, disabled: "" });
-    var panel = h("div", { class: "panel" }, [drop, input, list, orgBox, optBox, prog, status, h("div", { class: "actions" }, [go])]);
+    var limitBox = h("p", { class: "limits" }, [h("b", { text: "Limits: " }), document.createTextNode(LIMITS[key] || "")]);
+    var prevBox = h("div", { class: "prev" });
+    var panel = h("div", { class: "panel" }, [drop, input, limitBox, list, prevBox, orgBox, optBox, prog, status, h("div", { class: "actions" }, [go])]);
     var resBox = h("div", { class: "panel", hidden: "" });
     root.appendChild(panel); root.appendChild(resBox);
 
@@ -514,7 +570,22 @@
       });
     }
     function mv(a, b) { if (b < 0 || b >= files.length) return; files.splice(b, 0, files.splice(a, 1)[0]); drawList(); }
-    function fileChange() { drawList(); sync(); if (T.organizer) drawOrganizer(); }
+    var prevUrls = [], prevToken = 0;
+    function drawInputPreview() {
+      var tok = ++prevToken;
+      prevUrls.forEach(URL.revokeObjectURL); prevUrls = [];
+      prevBox.innerHTML = "";
+      if (!files.length || T.organizer) return;
+      var grid = h("div", { class: "thumbs" }), seq = Promise.resolve();
+      prevBox.appendChild(h("small", { text: "Preview" })); prevBox.appendChild(grid);
+      var alive = function () { return tok === prevToken; };
+      if (/^image/.test(T.accept)) files.forEach(function (f) {
+        var u = URL.createObjectURL(f); prevUrls.push(u); grid.appendChild(imgCell(u, f.name));
+      });
+      else if (T.multiple) files.forEach(function (f) { seq = seq.then(function () { return alive() && pdfThumbs(grid, f, "first", f.name, alive); }).catch(function () {}); });
+      else pdfThumbs(grid, files[0], "all", "Page ", alive).catch(function () {});
+    }
+    function fileChange() { drawList(); sync(); drawInputPreview(); if (T.organizer) drawOrganizer(); }
 
     function add(fl) {
       var arr = Array.prototype.slice.call(fl);
@@ -593,8 +664,9 @@
           h("a", { class: "btn alt sm", href: u, download: f.name, text: "Download" })
         ]));
       });
+      var zipBtn = null;
       if (r.files.length > 1) {
-        var z = h("button", { class: "btn", text: "Download all as ZIP", style: "margin-top:1rem" });
+        var z = zipBtn =  h("button", { class: "btn", text: "Download all as ZIP", style: "margin-top:1rem" });
         z.onclick = function () {
           z.disabled = true;
           needZip().then(function () {
@@ -608,7 +680,10 @@
       }
       var again = h("button", { class: "btn ghost", text: "Start over", style: "margin:1rem 0 0 .5rem", onclick: function () { files = []; resBox.hidden = true; msg(""); fileChange(); window.scrollTo({ top: 0, behavior: "smooth" }); } });
       resBox.appendChild(again);
-      var box = h("div", { class: "donate", "data-donate-box": "" }); resBox.appendChild(box); Donate.render(box);
+      var pv = h("div", { class: "prev" }), pgrid = h("div", { class: "thumbs" });
+      pv.appendChild(h("small", { text: "Preview of your result" })); pv.appendChild(pgrid); resBox.appendChild(pv);
+      resPreview(pgrid, r.files, urls);
+      var box =  h("div", { class: "donate", "data-donate-box": "" }); resBox.appendChild(box); Donate.render(box);
       resBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     sync();
