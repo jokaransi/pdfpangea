@@ -26,6 +26,10 @@ T = [
   "See every page as a thumbnail. Drag to reorder, rotate or delete pages, then save your new PDF.",
   ["Add your PDF and wait for thumbnails.","Drag pages, rotate with ⟳, delete with ✕.","Click “Save PDF”."],
   [("Does it work with large PDFs?","Yes, thumbnails are rendered one at a time to keep memory low.")],"organize"),
+ ("sign-pdf","Sign PDF","✍","#6c7a3b","Add your drawn signature to a PDF locally.","Sign a PDF online for free",
+  "Draw your signature and add it to selected PDF pages. Your document and signature stay on your device.",
+  ["Add a PDF and draw your signature with a finger, mouse or stylus.","Choose pages to sign, or leave the field empty to sign every page.","Download your signed PDF."],
+  [("Where is the signature placed?","It is placed near the bottom-right of every selected page. The tool does not provide a legally qualified electronic signature.")],"sign-pdf"),
  ("rotate-pdf","Rotate PDF","⟳","#b5532f","Turn pages 90°, 180° or 270°.","Rotate PDF pages",
   "Fix sideways scans by rotating all pages – or only selected ones – permanently.",
   ["Add your PDF.","Choose the angle and optionally the pages.","Download the rotated PDF."],
@@ -64,13 +68,13 @@ T = [
 ]
 def e(s): return html.escape(s, quote=True)
 # Most searched PDF tasks first
-ORDER = ["merge-pdf","compress-pdf","pdf-to-jpg","jpg-to-pdf","split-pdf","rotate-pdf","remove-pages","extract-pages","organize-pdf","watermark-pdf","add-page-numbers","pdf-to-text","pdf-to-gif","gif-to-pdf"]
+ORDER = ["merge-pdf","compress-pdf","pdf-to-jpg","jpg-to-pdf","split-pdf","rotate-pdf","remove-pages","extract-pages","organize-pdf","sign-pdf","watermark-pdf","add-page-numbers","pdf-to-text","pdf-to-gif","gif-to-pdf"]
 T.sort(key=lambda t: ORDER.index(t[0]))
 LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#b5532f"/><path d="M9 7h9l5 5v13H9z" fill="#fffaf1"/><path d="M18 7v5h5" fill="#e4c9a0"/><path d="M12 17h8M12 21h6" stroke="#6c7a3b" stroke-width="1.8" stroke-linecap="round"/></svg>'
 
 MENUS = [("Organize", ["merge-pdf","split-pdf","extract-pages","remove-pages","organize-pdf","rotate-pdf"]),
          ("Convert", ["pdf-to-jpg","jpg-to-pdf","pdf-to-text"]),
-         ("Edit", ["watermark-pdf","add-page-numbers"]),
+         ("Edit", ["sign-pdf","watermark-pdf","add-page-numbers"]),
          ("Optimize", ["compress-pdf"])]
 def tool_link(s, cls=""):
     t = next(x for x in T if x[0] == s)
@@ -110,6 +114,7 @@ IC = {
  "split":'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
  "remove-pages":'<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v7M14 10v7"/>',
  "extract-pages":'<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 14h6M12 11l3 3-3 3"/>',
+ "sign-pdf":'<path d="M3 17c4 0 4-8 7-8s-1 7 2 7 4-8 7-8"/><path d="M3 21h18"/>',
  "organize":'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  "rotate":'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
  "compress":'<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',
@@ -122,7 +127,7 @@ IC = {
  "pdf-to-text":'<path d="M4 6h16M4 12h16M4 18h10"/>',
 }
 def svg(k): return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">{IC[k]}</svg>'
-LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","pdf-to-gif":"Pdf2Gif","gif-to-pdf":"Gif2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
+LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","sign-pdf":"Sign","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","pdf-to-gif":"Pdf2Gif","gif-to-pdf":"Gif2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
 IC["home"] = '<path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6"/>'
 LBL["home"] = "Home"
 home_cards = "".join(f'<a class="card" href="{t[0]}.html" data-tool="{t[9]}" style="--c:{t[3]}"><div class="ico">{svg(t[9])}</div><h3>{t[1]}</h3><p>{t[4]}</p></a>' for t in T)
@@ -193,8 +198,6 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request,{{cache:"no-cache"}}).then(r=>{{if(r.ok){{const k=r.clone();caches.open(C).then(c=>c.put(e.request,k))}}return r}}).catch(()=>caches.match(e.request,{{ignoreSearch:true}})))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
-
-
 
 
 

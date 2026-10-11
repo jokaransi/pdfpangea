@@ -400,6 +400,32 @@
         });
       }
     },
+    "sign-pdf": {
+      accept: ".pdf,application/pdf", btn: "Sign PDF", signature: true,
+      options: [
+        { id: "pages", label: "Pages to sign", type: "text", value: "", hint: RANGE_HINT + " Leave empty for all pages." },
+        { id: "width", label: "Signature width (% of page)", type: "select", value: "35", choices: [["25", "Small (25%)"], ["35", "Medium (35%)"], ["45", "Large (45%)"]] }
+      ],
+      run: function (files, o, prog) {
+        if (!o.signature) return Promise.reject(new Error("Please draw your signature first."));
+        var f = files[0];
+        return Promise.all([loadDoc(f), canvasBlob(o.signature, "image/png").then(readBuf)]).then(function (a) {
+          var doc = a[0], pngBytes = a[1], pages = doc.getPages();
+          var indices = o.pages.trim() ? parseRanges(o.pages, pages.length) : doc.getPageIndices();
+          return doc.embedPng(pngBytes).then(function (image) {
+            indices.forEach(function (i, k) {
+              var page = pages[i], dims = page.getSize(), margin = Math.min(dims.width, dims.height) * 0.05;
+              var width = dims.width * (+o.width / 100), height = width * image.height / image.width;
+              var maxHeight = dims.height * 0.18;
+              if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
+              page.drawImage(image, { x: dims.width - margin - width, y: margin, width: width, height: height });
+              prog((k + 1) / indices.length);
+            });
+            return one(base(f.name) + "-signed.pdf", doc).then(function (r) { return { files: [r], pages: indices.length }; });
+          });
+        });
+      }
+    },
     "pdf-to-text": {
       accept: ".pdf,application/pdf", btn: "Extract text",
       run: function (files, o, prog) {
@@ -429,6 +455,7 @@
     "remove-pages": "Works well up to a few hundred pages. You can't remove every page. Password-protected PDFs aren't supported.",
     "extract-pages": "Works well up to a few hundred pages. Password-protected PDFs aren't supported.",
     organize: "Works well up to a few hundred pages; every page is shown as a thumbnail. Password-protected PDFs aren't supported.",
+    "sign-pdf": "Adds a drawn signature image near the bottom-right of selected pages. This is not a qualified electronic signature. Password-protected PDFs aren't supported.",
     rotate: "Works well up to a few hundred pages. Rotation is in steps of 90°. Password-protected PDFs aren't supported.",
     compress: "Light keeps text selectable; Balanced and Strong turn pages into images (text is no longer selectable). If the result isn't smaller, we keep your original. Password-protected PDFs aren't supported.",
     "pdf-to-jpg": "Long PDFs at 300 dpi need a lot of memory – pick a lower quality if your browser slows down. Results are offered as one ZIP.",
@@ -510,11 +537,36 @@
     var input = h("input", { type: "file", hidden: "", accept: T.accept });
     if (T.multiple) input.multiple = true;
     var list = h("ul", { class: "files" }), optBox = h("div", { class: "opts" }), orgBox = h("div"), status = h("div", { class: "status" });
+    var signBox = h("div", { class: "signature-box", hidden: "" }), signCanvas = null, hasSignature = false;
+    if (T.signature) {
+      signCanvas = h("canvas", { class: "signature-pad", width: "900", height: "260", "aria-label": "Draw your signature here" });
+      var sctx = signCanvas.getContext("2d");
+      sctx.lineWidth = 7; sctx.lineCap = "round"; sctx.lineJoin = "round"; sctx.strokeStyle = "#30251f";
+      var drawing = false;
+      signCanvas.addEventListener("pointerdown", function (ev) {
+        ev.preventDefault(); signCanvas.setPointerCapture(ev.pointerId);
+        var r = signCanvas.getBoundingClientRect(), x = (ev.clientX - r.left) * signCanvas.width / r.width, y = (ev.clientY - r.top) * signCanvas.height / r.height;
+        sctx.beginPath(); sctx.arc(x, y, 4, 0, Math.PI * 2); sctx.fill(); sctx.beginPath(); sctx.moveTo(x, y); drawing = true; hasSignature = true; sync();
+      });
+      signCanvas.addEventListener("pointermove", function (ev) {
+        if (!drawing) return; ev.preventDefault();
+        var r = signCanvas.getBoundingClientRect(), x = (ev.clientX - r.left) * signCanvas.width / r.width, y = (ev.clientY - r.top) * signCanvas.height / r.height;
+        sctx.lineTo(x, y); sctx.stroke(); hasSignature = true; sync();
+      });
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (name) {
+        signCanvas.addEventListener(name, function () { drawing = false; });
+      });
+      var clearSign = h("button", { type: "button", class: "btn ghost sm", text: "Clear signature" });
+      clearSign.onclick = function () { sctx.clearRect(0, 0, signCanvas.width, signCanvas.height); hasSignature = false; sync(); };
+      signBox.appendChild(h("label", { text: "Draw your signature" }));
+      signBox.appendChild(h("small", { text: "Use your finger, mouse or stylus. The signature is added near the bottom-right of the selected pages." }));
+      signBox.appendChild(signCanvas); signBox.appendChild(clearSign);
+    }
     var prog = h("progress", { max: "1", value: "0", hidden: "" });
     var go = h("button", { class: "btn", text: T.btn, disabled: "" });
     var limitBox = h("p", { class: "limits" }, [h("b", { text: "Limits: " }), document.createTextNode(LIMITS[key] || "")]);
     var prevBox = h("div", { class: "prev" });
-    var panel = h("div", { class: "panel" }, [drop, input, limitBox, list, prevBox, orgBox, optBox, prog, status, h("div", { class: "actions" }, [go])]);
+    var panel = h("div", { class: "panel" }, [drop, input, limitBox, list, prevBox, orgBox, signBox, optBox, prog, status, h("div", { class: "actions" }, [go])]);
     var resBox = h("div", { class: "panel", hidden: "" });
     root.appendChild(panel); root.appendChild(resBox);
 
@@ -544,9 +596,10 @@
     function msg(t, err) { status.textContent = t || ""; status.className = "status" + (err ? " err" : ""); }
     function sync() {
       var min = T.min || 1;
-      go.disabled = files.length < min;
+      go.disabled = files.length < min || (T.signature && !hasSignature);
       drop.hidden = !T.multiple && files.length > 0;
       optBox.hidden = orgBox.hidden = files.length === 0;
+      signBox.hidden = files.length === 0;
       go.hidden = files.length === 0;
       if (files.length && files.length < min) msg("Add at least " + min + " files.");
       else if (status.textContent.indexOf("Add at least") === 0) msg("");
@@ -646,6 +699,7 @@
     go.onclick = function () {
       go.disabled = true; resBox.hidden = true; msg("Working…"); prog.hidden = false; prog.value = 0;
       var o = Object.assign({}, opts); if (T.organizer) o.order = order;
+      if (T.signature) o.signature = signCanvas;
       Promise.resolve().then(function () { return T.run(files, o, function (v) { prog.value = v; }); }).then(function (r) {
         msg(""); showResults(r); Donate.add(r.pages);
       }).catch(function (e) { msg(e.message || String(e), true); }).then(function () { prog.hidden = true; go.disabled = files.length < (T.min || 1); });
@@ -725,8 +779,5 @@
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 })();
-
-
-
 
 
