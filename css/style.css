@@ -117,11 +117,11 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 .work .panel{margin:.8rem 0}
 .work .drop{padding:3rem 1rem}
 .statusbar{height:28px;display:flex;gap:1.5rem;align-items:center;padding:0 .8rem;background:var(--sand);border-top:1px solid var(--sand-d);font-size:.95rem;color:var(--brown-l);position:sticky;bottom:0;z-index:10}
-@media(max-width:640px){.statusbar span:nth-child(n+2){display:none}.menus .menu>button{padding:.2rem .4rem}header.site .logo{font-size:0}}
+@media(max-width:640px){.statusbar span:nth-child(n+2){display:none}.menus .menu>button{padding:.2rem .4rem}}
 
 
 
-@media(max-width:640px){.rail{width:56px}.rail .rl{display:none}.rail a{justify-content:center;padding:0}}
+@media(max-width:700px){.app{flex-direction:column;min-height:0}.rail{width:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--sand-d);padding:.4rem;gap:.3rem;position:sticky;top:44px;z-index:15;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}.rail a{flex:none;height:56px;flex-direction:column;justify-content:center;gap:0;padding:0 .8rem;min-width:76px;text-align:center}.rail .ri{font-size:1.3rem;line-height:1.2}.rail .rl{font-size:.95rem}.work{padding:.6rem .8rem 1.2rem}.titlebar p{display:none}.statusbar{position:static}}
 
 
 .welcome{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:rgba(58,42,31,.55);backdrop-filter:blur(3px);padding:1rem}
@@ -129,3 +129,4 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 .wbox h2{font-size:1.9rem}
 .wbox ul{list-style:none;padding:0;margin:1rem 0 1.4rem;text-align:left;font-size:1.25rem}
 .wbox li{margin:.7rem 0;line-height:1.4}
+

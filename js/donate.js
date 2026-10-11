@@ -88,7 +88,7 @@
     o.setAttribute("role", "dialog");
     o.setAttribute("aria-modal", "true");
     o.setAttribute("aria-labelledby", "wt");
-    o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf PANGEA</h2>' +
+    o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf pangea</h2>' +
       '<ul><li><b>🔒 Your files never leave this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
       '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
       '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1 ct per page</b> is appreciated – never required.</li></ul>' +
@@ -104,4 +104,5 @@
   });  window.Donate = Donate;
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
+
 

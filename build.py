@@ -2,7 +2,7 @@
 import json, os, html
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8080").rstrip("/")
-NAME = "pdf PANGEA"
+NAME = "pdf pangea"
 
 # slug, short title, emoji, colour, card text, h1, intro, steps, faqs, scripts
 T = [
@@ -68,7 +68,7 @@ def tool_link(s, cls=""):
 def header():
     menus = "".join(f'<div class="menu"><button type="button">{n} ▾</button><div class="dd">{"".join(tool_link(s) for s in items)}</div></div>' for n, items in MENUS)
     return f'''<header class="site"><div class="bar"><a class="logo" href="index.html">{LOGO}{NAME}</a>
-<nav class="menus">{menus}</nav><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a><a class="chip" href="support.html" data-donate-chip>♥ Donate</a></nav></div></header>'''
+<nav class="main"><a class="hide-s" href="privacy.html">Privacy</a><a class="chip" href="support.html" data-donate-chip>♥ Donate</a></nav></div></header>'''
 def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
     return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="support.html">Support</a></div></div></footer>'''
@@ -136,7 +136,7 @@ today = __import__("datetime").date.today().isoformat()
 open(os.path.join(ROOT,"sitemap.xml"),"w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f'<url><loc>{SITE_URL}/{"" if p=="index.html" else p}</loc><lastmod>{today}</lastmod></url>' for p in pages)+'</urlset>')
 open(os.path.join(ROOT,"robots.txt"),"w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
 open(os.path.join(ROOT,"favicon.svg"),"w").write(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))
-json.dump({"name":NAME,"short_name":"pdf PANGEA","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
+json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
 pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js"]
 ver = str(int(max(os.path.getmtime(os.path.join(ROOT,p)) for p in pre)))
 open(os.path.join(ROOT,"sw.js"),"w").write(f'''const C="pdfpangea-{ver}",A={json.dumps(pre)};
@@ -145,6 +145,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{{ignoreSearch:true}}).then(r=>r||fetch(e.request)))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 
