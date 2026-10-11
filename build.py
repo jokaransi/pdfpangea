@@ -158,7 +158,7 @@ pages += ["privacy.html","support.html","impressum.html"]
 page("impressum.html", f"Impressum – {NAME}", "Impressum und Anbieterkennzeichnung von pdf pangea.",
  '''<main class="wrap"><section class="prose"><h1>Impressum</h1>
 <p><b>Angaben gemäß § 5 DDG:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>48155 Münster</p>
-<p><b>Kontakt:</b><br>E-Mail: <a href="mailto:joshua@pdfpangea.com">joshua@pdfpangea.com</a></p>
+<p><b>Kontakt:</b><br>E-Mail: <a href="mailto:pdfpangea@gmail.com">pdfpangea@gmail.com</a></p>
 <p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>48155 Münster</p>
 <p><b>EU-Streitschlichtung:</b><br>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://europa.eu" rel="noopener">https://europa.eu</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
 <p><b>Verbraucherstreitbeilegung/Universalschlichtungsstelle:</b><br>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></section></main>''',
