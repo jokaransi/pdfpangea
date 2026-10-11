@@ -1,4 +1,4 @@
-﻿"""Static site generator. Run: python build.py   (set SITE_URL for production)"""
+"""Static site generator. Run: python build.py   (set SITE_URL for production)"""
 import json, os, html
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8080").rstrip("/")
@@ -103,7 +103,7 @@ org = {"@context":"https://schema.org","@type":"Organization","name":NAME,"url":
 cards = "".join(f'<a class="card" href="{s}.html" style="--c:{c}"><div class="ico">{i}</div><h3>{t}</h3><p>{d}</p></a>' for s,t,i,c,d,*_ in T)
 feat = '''<section class="features"><div><h3>🔒 Private by design</h3><p>Files are processed inside your browser. Nothing is uploaded, stored or seen by anyone else.</p></div>
 <div><h3>⚡ Fast &amp; light</h3><p>Small tools load only when needed, then are cached so the site keeps working offline.</p></div>
-<div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (1 ct per page) keeps the lights on.</p></div></section>'''
+<div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (€1 + 1 ct per page) keeps the lights on.</p></div></section>'''
 meta = {t[9]: {"slug": t[0], "title": t[1], "h1": t[5], "intro": t[6]} for t in T}
 IC = {
  "merge":'<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>',
@@ -131,7 +131,7 @@ body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" 
 <main class="work"><section id="home"><div class="titlebar"><h1>Free PDF tools that never leave your device</h1><p>Merge, compress, convert and edit PDFs right in your browser. Nothing is uploaded, nothing needs signing up. Most popular tools first.</p></div><div class="cards">{home_cards}</div>{feat}</section>
 <section id="toolview" hidden><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="{T[0][9]}"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></section></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
-<div class="statusbar"><div class="ticker" aria-label="Files never leave this device. Works offline. Free, optional tip 1 ct per page."><div class="tk"><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip 1 ct per page</span><span>🍪 One cookie, no ads</span><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip 1 ct per page</span><span>🍪 One cookie, no ads</span></div></div></div>
+<div class="statusbar"><div class="ticker" aria-label="Files never leave this device. Works offline. Free, optional tip 1 ct per page."><div class="tk"><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>🍪 One cookie, no ads</span><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>🍪 One cookie, no ads</span></div></div></div>
 <div class="wrap"><section class="prose alltools"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
 <section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p></section></div>'''
 page("index.html", f"{NAME} – Free private PDF tools: merge, split, compress, convert",
@@ -144,7 +144,7 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
     related = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T if s != slug)
     st = "".join(f"<li>{x}</li>" for x in steps)
     fq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in faqs)
-    fq += "<details><summary>Is it really free and private?</summary><p>Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional donation (1 cent per processed page) is only a suggestion.</p></details>"
+    fq += "<details><summary>Is it really free and private?</summary><p>Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional donation (€1 plus 1 cent per processed page) is only a suggestion.</p></details>"
     body = f'''<main class="wrap"><section class="tool-head"><div class="crumbs"><a href="index.html">Home</a> › {title}</div><h1>{h1}</h1><p>{intro}</p></section>
 <div id="tool" data-tool="{tool}"><noscript><div class="panel">Please enable JavaScript – the tool runs in your browser.</div></noscript></div>
 <section class="prose"><h2>How to: {title.lower()}</h2><ol>{st}</ol><h2>Questions</h2>{fq}<h2>More PDF tools</h2><div class="tags">{related}</div></section></main>'''
@@ -157,10 +157,9 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
 pages += ["privacy.html","support.html","impressum.html"]
 page("impressum.html", f"Impressum – {NAME}", "Impressum und Anbieterkennzeichnung von pdf pangea.",
  '''<main class="wrap"><section class="prose"><h1>Impressum</h1>
-<p><b>Angaben gemäß § 5 DDG:</b><br>[Ihr Vorname] [Ihr Nachname]<br>[Ihre Straße und Hausnummer]<br>[Ihre Postleitzahl] [Ihr Ort]</p>
-<p><b>Kontakt:</b><br>Telefon: [Ihre Telefonnummer]<br>E-Mail: [Ihre E-Mail-Adresse]</p>
-<p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>[Ihr Vorname] [Ihr Nachname]<br>[Ihre Straße und Hausnummer]<br>[Ihre Postleitzahl] [Ihr Ort]</p>
-<p><b>Umsatzsteuer-ID:</b><br>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz: DE [Ihre USt-IdNr.]</p>
+<p><b>Angaben gemäß § 5 DDG:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>[Ihre Postleitzahl] [Ihr Ort]</p>
+<p><b>Kontakt:</b><br>E-Mail: <a href="mailto:joshua@pdfpangea.com">joshua@pdfpangea.com</a></p>
+<p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>[Ihre Postleitzahl] [Ihr Ort]</p>
 <p><b>EU-Streitschlichtung:</b><br>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://europa.eu" rel="noopener">https://europa.eu</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
 <p><b>Verbraucherstreitbeilegung/Universalschlichtungsstelle:</b><br>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></section></main>''',
  [org], ("js/donate.js",))
@@ -178,7 +177,7 @@ page("privacy.html", f"Datenschutzerklärung / Privacy – {NAME}", "Datenschutz
 <h2>8. Aktualität</h2><p>Stand: Oktober 2026. Wir passen diese Erklärung an, wenn sich die Website oder die Rechtslage ändert.</p></section></main>''',
  [org], ("js/donate.js",))
 page("support.html", f"Support {NAME}", "Everything is free. Optionally support the project with a tiny donation of 1 cent per page.",
- f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
+ f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip €1 plus 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
 <div class="donate" data-donate-box></div></section></main>''', [org], ("js/donate.js",))
 
 today = __import__("datetime").date.today().isoformat()

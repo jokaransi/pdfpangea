@@ -1,8 +1,8 @@
-﻿/* Optional donation counter. 1 cent per processed page, stored in a cookie. Never blocks anything. */
+/* Optional donation counter. 1 cent per processed page, stored in a cookie. Never blocks anything. */
 (function () {
   var CONFIG = {
     centsPerPage: 1,
-    kofiUrl: "", // TODO: put your Ko-fi page here, e.g. "https://ko-fi.com/yourname"
+    kofiUrl: "https://ko-fi.com/djoshi", minCents: 100, // TODO: put your Ko-fi page here, e.g. "https://ko-fi.com/yourname"
     cookie: "hp_donation"
   };
 
@@ -39,7 +39,7 @@
     },
     markPaid: function () {
       this.state = readCookie();
-      this.state.paid += this.state.pending;
+      this.state.paid += CONFIG.minCents + this.state.pending;
       this.state.pending = 0;
       save(this.state);
       this.refresh();
@@ -49,7 +49,7 @@
       this.state = readCookie();
       var s = this.state;
       document.querySelectorAll("[data-donate-chip]").forEach(function (el) {
-        el.textContent = s.pending > 0 ? "♥ Support me · " + eur(s.pending) : "♥ Support me";
+        el.textContent = "♥ Support me · " + eur(CONFIG.minCents + s.pending);
         if (CONFIG.kofiUrl) { el.href = CONFIG.kofiUrl; el.target = "_blank"; el.rel = "noopener"; }
       });
       document.querySelectorAll("[data-donate-box]").forEach(function (b) { Donate.render(b); });
@@ -61,13 +61,13 @@
       h.textContent = "Enjoying this tool?";
       var p = document.createElement("p");
       p.textContent = s.pending > 0
-        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + eur(s.pending) + " (1 ct per page). It is entirely optional – everything stays free."
-        : "Everything is free and runs on your device. If it helped, a small tip keeps it that way – 1 ct per page, entirely optional.";
+        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + eur(CONFIG.minCents + s.pending) + " (€1.00 minimum + 1 ct per page). It is entirely optional – everything stays free."
+        : "Everything is free and runs on your device. If it helped, a small tip of €1.00 plus 1 ct per page keeps it that way – entirely optional.";
       var row = document.createElement("div");
       row.className = "row";
       var d = document.createElement("button");
       d.className = "btn";
-      d.textContent = s.pending > 0 ? "Support me · " + eur(s.pending) : "Support me";
+      d.textContent = "Support me · " + eur(CONFIG.minCents + s.pending);
       var note = document.createElement("p");
       note.style.fontSize = "1rem";
       d.onclick = function () {
