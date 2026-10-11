@@ -1,4 +1,4 @@
-﻿/* PDFPangea – all PDF processing happens in the browser. Nothing is uploaded. */
+﻿/* pdf PANGEA – all PDF processing happens in the browser. Nothing is uploaded. */
 (function () {
   "use strict";
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -538,7 +538,7 @@
         if (!TOOLS[k]) k = "merge";
         r.dataset.tool = k; r.innerHTML = ""; mount(r);
         $("#tt").textContent = meta[k].h1; $("#ts").textContent = meta[k].intro;
-        document.title = meta[k].h1 + " – PDFPangea";
+        document.title = meta[k].h1 + " – pdf PANGEA";
         document.querySelectorAll(".rail a").forEach(function (a) { a.classList.toggle("active", a.dataset.tool === k); });
         if (push) history.replaceState(null, "", "#" + meta[k].slug);
       };
@@ -552,4 +552,5 @@
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 })();
+
 
