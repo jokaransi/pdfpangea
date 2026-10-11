@@ -2,7 +2,7 @@
 (function () {
   var CONFIG = {
     centsPerPage: 1,
-    paypalUrl: "", // TODO: put your PayPal.me / donate link here, e.g. "https://www.paypal.com/donate/?hosted_button_id=XXXX"
+    kofiUrl: "", // TODO: put your Ko-fi page here, e.g. "https://ko-fi.com/yourname"
     cookie: "hp_donation"
   };
 
@@ -49,7 +49,8 @@
       this.state = readCookie();
       var s = this.state;
       document.querySelectorAll("[data-donate-chip]").forEach(function (el) {
-        el.textContent = s.pending > 0 ? "♥ " + eur(s.pending) : "♥ Donate";
+        el.textContent = s.pending > 0 ? "♥ Support me · " + eur(s.pending) : "♥ Support me";
+        if (CONFIG.kofiUrl) { el.href = CONFIG.kofiUrl; el.target = "_blank"; el.rel = "noopener"; }
       });
       document.querySelectorAll("[data-donate-box]").forEach(function (b) { Donate.render(b); });
     },
@@ -66,18 +67,18 @@
       row.className = "row";
       var d = document.createElement("button");
       d.className = "btn";
-      d.textContent = s.pending > 0 ? "Donate " + eur(s.pending) : "Donate";
+      d.textContent = s.pending > 0 ? "Support me · " + eur(s.pending) : "Support me";
       var note = document.createElement("p");
       note.style.fontSize = "1rem";
       d.onclick = function () {
-        if (CONFIG.paypalUrl) { window.open(CONFIG.paypalUrl, "_blank", "noopener"); }
-        else { note.textContent = "PayPal donations are coming soon – thank you for the thought!"; }
+        if (CONFIG.kofiUrl) { window.open(CONFIG.kofiUrl, "_blank", "noopener"); }
+        else { note.textContent = "Ko-fi support is coming soon – thank you for the thought!"; }
       };
       row.appendChild(d);
       if (s.pending > 0) {
         var r = document.createElement("button");
         r.className = "btn ghost";
-        r.textContent = "I've donated – reset counter";
+        r.textContent = "I've supported – reset counter";
         r.onclick = function () { Donate.markPaid(); };
         row.appendChild(r);
       }

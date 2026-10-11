@@ -78,10 +78,10 @@ def tool_link(s, cls=""):
 def header():
     menus = "".join(f'<div class="menu"><button type="button">{n} ▾</button><div class="dd">{"".join(tool_link(s) for s in items)}</div></div>' for n, items in MENUS)
     return f'''<header class="site"><div class="bar"><a class="logo" href="index.html">{LOGO}{NAME}</a>
-<a class="chip dn" href="support.html" data-donate-chip>♥ Donate</a><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a></nav></div></header>'''
+<a class="chip dn" href="support.html" data-donate-chip>♥ Support me</a><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a></nav></div></header>'''
 def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
-    return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="support.html">Support</a><a href="#" data-cookie-settings>Cookie settings</a></div></div></footer>'''
+    return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="impressum.html">Impressum</a><a href="support.html">Support</a><a href="#" data-cookie-settings>Cookie settings</a></div></div></footer>'''
 
 def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bcls=""):
     url = f"{SITE_URL}/{'' if fn=='index.html' else fn}"
@@ -154,7 +154,16 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
       {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL+"/"},{"@type":"ListItem","position":2,"name":title,"item":f"{SITE_URL}/{slug}.html"}]}]
     page(slug+".html", f"{h1} – {NAME}", intro[:155], body, ld, ("js/donate.js","js/app.js"))
 
-pages += ["privacy.html","support.html"]
+pages += ["privacy.html","support.html","impressum.html"]
+page("impressum.html", f"Impressum – {NAME}", "Impressum und Anbieterkennzeichnung von pdf pangea.",
+ '''<main class="wrap"><section class="prose"><h1>Impressum</h1>
+<p><b>Angaben gemäß § 5 DDG:</b><br>[Ihr Vorname] [Ihr Nachname]<br>[Ihre Straße und Hausnummer]<br>[Ihre Postleitzahl] [Ihr Ort]</p>
+<p><b>Kontakt:</b><br>Telefon: [Ihre Telefonnummer]<br>E-Mail: [Ihre E-Mail-Adresse]</p>
+<p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>[Ihr Vorname] [Ihr Nachname]<br>[Ihre Straße und Hausnummer]<br>[Ihre Postleitzahl] [Ihr Ort]</p>
+<p><b>Umsatzsteuer-ID:</b><br>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz: DE [Ihre USt-IdNr.]</p>
+<p><b>EU-Streitschlichtung:</b><br>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://europa.eu" rel="noopener">https://europa.eu</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
+<p><b>Verbraucherstreitbeilegung/Universalschlichtungsstelle:</b><br>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></section></main>''',
+ [org], ("js/donate.js",))
 page("privacy.html", f"Privacy – {NAME}", "Your files never leave your device. Learn what little is stored.",
  '''<main class="wrap"><section class="prose"><h1>Privacy</h1><p>All PDF and image processing happens inside your browser. Your files are not uploaded, transmitted or stored on any server.</p>
 <h2>What is stored</h2><p>If you accept, a single cookie (<code>hp_donation</code>) is saved on your device. It remembers how many pages you processed and how much you chose to donate. It contains no personal data, is never used for tracking or advertising, and nothing is shared with anyone. There are no ads and no third-party cookies. The tools work the same if you decline; the counter then only lasts until you close the page. Your choice is stored in your browser's local storage. You can change it any time via “Cookie settings” in the footer. The site also caches its own files so it can work offline.</p></section></main>''',
