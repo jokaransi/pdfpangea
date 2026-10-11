@@ -694,13 +694,21 @@
     if (shell) {
       meta = JSON.parse($("#meta").textContent);
       var open = function (k, push) {
-        if (!TOOLS[k]) k = "merge";
-        r.dataset.tool = k; r.innerHTML = ""; mount(r);
-        $("#tt").textContent = meta[k].h1; $("#ts").textContent = meta[k].intro;
-        document.title = meta[k].h1 + " – pdf pangea";
+        var home = k === "home" || !TOOLS[k];
+        $("#home").hidden = !home; $("#toolview").hidden = home;
+        if (home) k = "home";
         document.querySelectorAll(".rail a").forEach(function (a) { a.classList.toggle("active", a.dataset.tool === k); });
+        if (home) {
+          r.innerHTML = ""; document.title = "pdf pangea – Free private PDF tools: merge, split, compress, convert";
+          if (push) history.replaceState(null, "", location.pathname + location.search);
+          window.scrollTo(0, 0);
+        } else {
+          r.dataset.tool = k; r.innerHTML = ""; mount(r);
+          $("#tt").textContent = meta[k].h1; $("#ts").textContent = meta[k].intro;
+          document.title = meta[k].h1 + " – pdf pangea";
+          if (push) history.replaceState(null, "", "#" + meta[k].slug);
+        }
         var act = document.querySelector(".rail a.active"); if (act && act.scrollIntoView) act.scrollIntoView({ block: "nearest", inline: "center" });
-        if (push) history.replaceState(null, "", "#" + meta[k].slug);
       };
       var rail = $("#rail"), rt = $(".rt");
       var setOpen = function (v) { rail.classList.toggle("open", v); rt.setAttribute("aria-expanded", v); rt.textContent = v ? "Close ▴" : "View all tools ▾"; };
@@ -708,8 +716,10 @@
       document.querySelectorAll("a[data-tool]").forEach(function (a) {
         a.addEventListener("click", function (e) { e.preventDefault(); open(a.dataset.tool, true); setOpen(false); if (document.activeElement) document.activeElement.blur(); });
       });
-      var start = "merge", h = location.hash.slice(1);
+      var start = "home", h = location.hash.slice(1);
       Object.keys(meta).forEach(function (k) { if (meta[k].slug === h) start = k; });
+      var logo = $("header.site .logo");
+      if (logo) logo.addEventListener("click", function (e) { e.preventDefault(); open("home", true); setOpen(false); });
       open(start, false);
     } else if (r && TOOLS[r.dataset.tool]) mount(r);
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});

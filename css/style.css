@@ -1,4 +1,4 @@
-﻿@font-face{font-family:"EB Garamond";font-weight:400;font-style:normal;font-display:swap;src:url(../fonts/ebgaramond-latin-400.woff2) format("woff2")}
+@font-face{font-family:"EB Garamond";font-weight:400;font-style:normal;font-display:swap;src:url(../fonts/ebgaramond-latin-400.woff2) format("woff2")}
 @font-face{font-family:"EB Garamond";font-weight:400;font-style:italic;font-display:swap;src:url(../fonts/ebgaramond-latin-400i.woff2) format("woff2")}
 @font-face{font-family:"EB Garamond";font-weight:600;font-style:normal;font-display:swap;src:url(../fonts/ebgaramond-latin-600.woff2) format("woff2")}
 /* Recoleta is a commercial font and cannot be bundled. If you own a licence, drop the files in /fonts and they are picked up automatically.
@@ -159,8 +159,11 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 
 @media(max-width:700px){.statusbar span:nth-child(n+2){display:inline-block!important}.statusbar .ticker{width:auto;flex:1}}
 
-header.site .bar{position:static}.chip.dn{position:absolute;left:50%;transform:translateX(-50%);font-weight:600}
-@media(min-width:701px){.titlebar{position:relative;left:-84px}}
+header.site .bar{position:relative}.chip.dn{position:absolute;left:50%;transform:translateX(-50%);font-weight:600}
+header.site nav.main{position:absolute;right:.8rem;top:50%;transform:translateY(-50%)}
+/* on the app shell the donate chip centres over the work area, i.e. exactly above the tool */
+@media(min-width:701px){body.shell header.site .chip.dn{left:calc(168px + (100% - 168px) / 2)}}
+
 @media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
 
 
@@ -170,3 +173,7 @@ header.site .bar{position:static}.chip.dn{position:absolute;left:50%;transform:t
 .prev{margin-top:.8rem}.prev small{color:var(--brown-l);font-size:1rem}
 .txtprev{background:#fff;border:1px solid var(--sand);border-radius:12px;padding:.8rem;max-height:260px;overflow:auto;white-space:pre-wrap;font-size:.9rem;margin:.8rem 0}
 .limits{margin:.6rem 0 0;color:var(--brown-l);font-size:1rem;text-align:center;line-height:1.35}.limits b{color:var(--brown)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem;margin:1.2rem 0}
+.cards .card{padding:1rem;text-align:center}.cards .card .ico{margin:0 auto .6rem}.cards .card .ico .ic{width:24px;height:24px}
+#home .features{margin:1.5rem 0 0}#home .features div{text-align:center}
+@media(max-width:700px){.cards{grid-template-columns:1fr 1fr;gap:.6rem}.cards .card{padding:.7rem .5rem}.cards .card h3{font-size:1.1rem}.cards .card p{font-size:.95rem}}

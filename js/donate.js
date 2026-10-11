@@ -92,6 +92,7 @@
   };
   document.addEventListener("DOMContentLoaded", function () {
     var o = document.createElement("div");
+    try { if (sessionStorage.getItem("pp_seen")) return; sessionStorage.setItem("pp_seen", "1"); } catch (e) {}
     o.className = "welcome";
     o.setAttribute("role", "dialog");
     o.setAttribute("aria-modal", "true");
@@ -126,7 +127,7 @@
   }
   Donate.showConsent = showConsent;
   document.addEventListener("DOMContentLoaded", function () {
-    if (consent() === null) showConsent();
+    if (consent() === null) { try { if (!sessionStorage.getItem("pp_cookie_seen")) { sessionStorage.setItem("pp_cookie_seen", "1"); showConsent(); } } catch (e) { showConsent(); } }
     document.querySelectorAll("[data-cookie-settings]").forEach(function (a) {
       a.addEventListener("click", function (e) { e.preventDefault(); showConsent(); });
     });

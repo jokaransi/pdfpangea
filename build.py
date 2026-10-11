@@ -63,6 +63,9 @@ T = [
   [("Does it work on scans?","Only if the PDF contains real text. Scanned images need OCR, which is not included.")],"pdf-to-text"),
 ]
 def e(s): return html.escape(s, quote=True)
+# Most searched PDF tasks first
+ORDER = ["merge-pdf","compress-pdf","pdf-to-jpg","jpg-to-pdf","split-pdf","rotate-pdf","remove-pages","extract-pages","organize-pdf","watermark-pdf","add-page-numbers","pdf-to-text","pdf-to-gif","gif-to-pdf"]
+T.sort(key=lambda t: ORDER.index(t[0]))
 LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#b5532f"/><path d="M9 7h9l5 5v13H9z" fill="#fffaf1"/><path d="M18 7v5h5" fill="#e4c9a0"/><path d="M12 17h8M12 21h6" stroke="#6c7a3b" stroke-width="1.8" stroke-linecap="round"/></svg>'
 
 MENUS = [("Organize", ["merge-pdf","split-pdf","extract-pages","remove-pages","organize-pdf","rotate-pdf"]),
@@ -120,9 +123,13 @@ IC = {
 }
 def svg(k): return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">{IC[k]}</svg>'
 LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","pdf-to-gif":"Pdf2Gif","gif-to-pdf":"Gif2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
+IC["home"] = '<path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6"/>'
+LBL["home"] = "Home"
+home_cards = "".join(f'<a class="card" href="{t[0]}.html" data-tool="{t[9]}" style="--c:{t[3]}"><div class="ico">{svg(t[9])}</div><h3>{t[1]}</h3><p>{t[4]}</p></a>' for t in T)
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
 body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
-<main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
+<main class="work"><section id="home"><div class="titlebar"><h1>Free PDF tools that never leave your device</h1><p>Merge, compress, convert and edit PDFs right in your browser. Nothing is uploaded, nothing needs signing up. Most popular tools first.</p></div><div class="cards">{home_cards}</div>{feat}</section>
+<section id="toolview" hidden><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="{T[0][9]}"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></section></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
 <div class="statusbar"><div class="ticker" aria-label="Files never leave this device. Works offline. Free, optional tip 1 ct per page."><div class="tk"><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip 1 ct per page</span><span>🍪 One cookie, no ads</span><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip 1 ct per page</span><span>🍪 One cookie, no ads</span></div></div></div>
 <div class="wrap"><section class="prose alltools"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
