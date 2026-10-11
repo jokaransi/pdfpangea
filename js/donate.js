@@ -27,6 +27,12 @@
     var v = [s.pending, s.paid, s.pages].join("|");
     document.cookie = CONFIG.cookie + "=" + encodeURIComponent(v) + ";max-age=" + 3600 * 24 * 365 * 2 + ";path=/;SameSite=Lax";
   }  function eur(c) { return "€" + (c / 100).toFixed(2); }
+  function kofiLink(s) {
+    var url = new URL(CONFIG.kofiUrl);
+    url.searchParams.set("amount", ((CONFIG.minCents + s.pending) / 100).toFixed(2));
+    url.searchParams.set("currency", "EUR");
+    return url.toString();
+  }
 
   var Donate = {
     state: readCookie(),
@@ -50,7 +56,7 @@
       var s = this.state;
       document.querySelectorAll("[data-donate-chip]").forEach(function (el) {
         el.textContent = "*tips hat* 🎩 · " + eur(CONFIG.minCents + s.pending);
-        if (CONFIG.kofiUrl) { el.href = CONFIG.kofiUrl; el.target = "_blank"; el.rel = "noopener"; }
+        if (CONFIG.kofiUrl) { el.href = kofiLink(s); el.target = "_blank"; el.rel = "noopener"; }
       });
       document.querySelectorAll("[data-donate-box]").forEach(function (b) { Donate.render(b); });
     },
@@ -71,7 +77,7 @@
       var note = document.createElement("p");
       note.style.fontSize = "1rem";
       d.onclick = function () {
-        if (CONFIG.kofiUrl) { window.open(CONFIG.kofiUrl, "_blank", "noopener"); }
+        if (CONFIG.kofiUrl) { window.open(kofiLink(s), "_blank", "noopener"); }
         else { note.textContent = "Ko-fi support is coming soon – thank you for the thought!"; }
       };
       row.appendChild(d);
@@ -135,6 +141,5 @@
   });
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
-
 
 

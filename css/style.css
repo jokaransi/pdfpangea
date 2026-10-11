@@ -88,6 +88,8 @@ summary{cursor:pointer;font-weight:600}
 footer.site{border-top:1px solid var(--sand);margin-top:3rem;padding:2rem 0;color:var(--brown-l);font-size:1.05rem}
 footer.site .wrap{display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between}
 footer.site a{color:var(--brown-l);margin-right:1rem}
+footer.site .wrap>div{min-width:0;max-width:100%}
+footer.site .wrap>div:last-child a{overflow-wrap:anywhere}
 [hidden]{display:none!important}
 @media(max-width:640px){nav.main a.hide-s{display:none}}
 
@@ -163,6 +165,11 @@ header.site .bar{position:relative}.chip.dn{position:absolute;left:50%;transform
 header.site nav.main{position:absolute;right:.8rem;top:50%;transform:translateY(-50%)}
 /* on the app shell the donate chip centres over the work area, i.e. exactly above the tool */
 @media(min-width:701px){body.shell header.site .chip.dn{left:calc(168px + (100% - 168px) / 2)}}
+@media(max-width:700px){
+header.site .chip.dn{left:auto;right:.5rem;top:50%;transform:translateY(-50%);font-size:.82rem;padding:.15rem .45rem}
+header.site .logo{font-size:1.1rem;gap:.3rem;margin-right:6.5rem}
+header.site .logo svg{width:24px;height:24px}
+}
 
 @media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
 
@@ -177,3 +184,29 @@ header.site nav.main{position:absolute;right:.8rem;top:50%;transform:translateY(
 .cards .card{padding:1rem;text-align:center}.cards .card .ico{margin:0 auto .6rem}.cards .card .ico .ic{width:24px;height:24px}
 #home .features{margin:1.5rem 0 0}#home .features div{text-align:center}
 @media(max-width:700px){.cards{grid-template-columns:1fr 1fr;gap:.6rem}.cards .card{padding:.7rem .5rem}.cards .card h3{font-size:1.1rem}.cards .card p{font-size:.95rem}}
+@media(max-width:700px){
+.panel{padding:.8rem;margin:.6rem 0;border-radius:14px}
+.work .panel{padding:.8rem}
+.drop{padding:1.4rem .7rem}
+.drop strong{font-size:1.15rem}
+.files{margin:.6rem 0;gap:.35rem}
+.files li{min-width:0;gap:.35rem;padding:.35rem .45rem}
+.files .name{min-width:0;font-size:.9rem}
+.files .meta{font-size:.78rem;white-space:nowrap}
+.files .btn.sm{padding:.15rem .45rem;font-size:.85rem}
+.opts{grid-template-columns:minmax(0,1fr);gap:.65rem}
+.result{min-width:0;gap:.4rem;font-size:.85rem}
+.result .name{min-width:0;overflow-wrap:anywhere}
+.result .meta{white-space:nowrap;font-size:.78rem}
+.result .btn{flex:none;padding:.3rem .65rem;font-size:.9rem}
+.prev .thumbs{display:flex;gap:.5rem;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:.15rem 0 .5rem;margin:.5rem 0;max-width:100%}
+.prev .thumb{flex:0 0 82px;width:82px;min-width:0;padding:.3rem;font-size:.78rem;scroll-snap-align:start}
+.prev .thumb .pic{height:78px}
+.prev .thumb canvas,.prev .thumb img{max-width:100%;max-height:76px}
+.prev .thumb span{font-size:.74rem}
+.prev .thumb .tb{gap:.2rem}
+.prev .thumb .tb .btn{padding:.1rem .4rem;font-size:.85rem}
+.prev .thumbs .more{flex:0 0 auto;align-self:center;font-size:.8rem;white-space:normal}
+.txtprev{max-width:100%;box-sizing:border-box}
+.limits{text-align:left;font-size:.88rem}
+}
