@@ -156,5 +156,9 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 .statusbar .ticker:hover .tk{animation-play-state:paused}
 @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .statusbar .chip{padding:.05rem .8rem;font-size:.95rem;font-weight:600}
-@media(prefers-reduced-motion:reduce){.tk{animation:none}}
+
 @media(max-width:700px){.statusbar span:nth-child(n+2){display:inline-block!important}.statusbar .ticker{width:auto;flex:1}}
+
+header.site .bar{position:relative}.chip.dn{position:absolute;left:50%;transform:translateX(-50%);font-weight:600}
+@media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
+
