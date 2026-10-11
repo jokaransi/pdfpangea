@@ -244,3 +244,4 @@ header.site .logo svg{width:24px;height:24px}
 .wbox .wbtns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
 .wbox .wno{background:none;border:0;padding:.2rem;margin-top:.7rem;font:inherit;font-size:1.05rem;color:var(--muted,#7a6350);text-decoration:underline;cursor:pointer}
 .files li.pgs{display:block;background:var(--paper,#fffaf2)}.files li.pgs .thumbs{margin:.6rem 0 0}.thumbs .more{cursor:pointer}.thumbs .btn.more{justify-self:center}.thumb.ro .tb{display:flex}
+@media(min-width:701px){.rail{position:sticky;top:44px;align-self:flex-start;height:calc(100vh - 72px);overflow-y:auto;scrollbar-width:thin;gap:.1rem;padding:.4rem .5rem}.rail a{flex:1 1 0;height:auto;min-height:26px;max-height:44px}.rail .ri{font-size:1.2rem}.rail .rl{font-size:clamp(.9rem,2.2vh,1.15rem)}.rail .ic{width:clamp(16px,2.8vh,22px);height:clamp(16px,2.8vh,22px)}}
