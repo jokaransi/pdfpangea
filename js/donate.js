@@ -39,8 +39,12 @@
   function openKofi(s) {
     var amount = tip(s);
     try { if (navigator.clipboard) navigator.clipboard.writeText(String(amount)).catch(function () {}); } catch (e) {}
-    toast("Ko-fi is opening – please enter " + amount + "€ as your tip. Thank you! 🎩");
-    window.open(CONFIG.kofiUrl, "_blank", "noopener");
+    toast("Opening Ko-fi… we'd recommend a " + amount + "€ tip – but it's entirely up to you. Thank you! 🎩");
+    // open the tab right away (popup blockers), then send it to Ko-fi after 2 seconds
+    var w = null;
+    try { w = window.open("", "_blank"); } catch (e) {}
+    if (w) { try { w.document.write("<title>Opening Ko-fi…</title><body style='font:20px Georgia;background:#f7f0e4;color:#30251f;display:grid;place-items:center;height:100vh;margin:0'>Opening Ko-fi… 🎩"); } catch (e) {} }
+    setTimeout(function () { if (w && !w.closed) w.location.href = CONFIG.kofiUrl; else window.location.href = CONFIG.kofiUrl; }, 2000);
   }
   var Donate = {
     state: readCookie(),
