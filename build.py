@@ -78,7 +78,7 @@ def tool_link(s, cls=""):
 def header():
     menus = "".join(f'<div class="menu"><button type="button">{n} ▾</button><div class="dd">{"".join(tool_link(s) for s in items)}</div></div>' for n, items in MENUS)
     return f'''<header class="site"><div class="bar"><a class="logo" href="index.html">{LOGO}{NAME}</a>
-<a class="chip dn" href="support.html" data-donate-chip>♥ Support me</a><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a></nav></div></header>'''
+<a class="chip dn" href="support.html" data-donate-chip>*tips hat* 🎩</a><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a></nav></div></header>'''
 def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
     return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="impressum.html">Impressum</a><a href="support.html">Support</a><a href="#" data-cookie-settings>Cookie settings</a></div></div></footer>'''
@@ -157,9 +157,9 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
 pages += ["privacy.html","support.html","impressum.html"]
 page("impressum.html", f"Impressum – {NAME}", "Impressum und Anbieterkennzeichnung von pdf pangea.",
  '''<main class="wrap"><section class="prose"><h1>Impressum</h1>
-<p><b>Angaben gemäß § 5 DDG:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>[Ihre Postleitzahl] [Ihr Ort]</p>
+<p><b>Angaben gemäß § 5 DDG:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>48155 Münster</p>
 <p><b>Kontakt:</b><br>E-Mail: <a href="mailto:joshua@pdfpangea.com">joshua@pdfpangea.com</a></p>
-<p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>[Ihre Postleitzahl] [Ihr Ort]</p>
+<p><b>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</b><br>Joshua Karan Singh<br>Hafenweg 28, Atelier 2.4<br>48155 Münster</p>
 <p><b>EU-Streitschlichtung:</b><br>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://europa.eu" rel="noopener">https://europa.eu</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
 <p><b>Verbraucherstreitbeilegung/Universalschlichtungsstelle:</b><br>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></section></main>''',
  [org], ("js/donate.js",))

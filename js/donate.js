@@ -49,7 +49,7 @@
       this.state = readCookie();
       var s = this.state;
       document.querySelectorAll("[data-donate-chip]").forEach(function (el) {
-        el.textContent = "♥ Support me · " + eur(CONFIG.minCents + s.pending);
+        el.textContent = "*tips hat* 🎩 · " + eur(CONFIG.minCents + s.pending);
         if (CONFIG.kofiUrl) { el.href = CONFIG.kofiUrl; el.target = "_blank"; el.rel = "noopener"; }
       });
       document.querySelectorAll("[data-donate-box]").forEach(function (b) { Donate.render(b); });
@@ -67,7 +67,7 @@
       row.className = "row";
       var d = document.createElement("button");
       d.className = "btn";
-      d.textContent = "Support me · " + eur(CONFIG.minCents + s.pending);
+      d.textContent = "*tips hat* 🎩 · " + eur(CONFIG.minCents + s.pending);
       var note = document.createElement("p");
       note.style.fontSize = "1rem";
       d.onclick = function () {
