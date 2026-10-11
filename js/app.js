@@ -1,4 +1,4 @@
-﻿/* pdf pangea – all PDF processing happens in the browser. Nothing is uploaded. */
+/* pdf pangea – all PDF processing happens in the browser. Nothing is uploaded. */
 (function () {
   "use strict";
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -56,7 +56,7 @@
       var m = part.match(/^(\d*)\s*-\s*(\d*)$/), a, b;
       if (m) { a = m[1] ? +m[1] : 1; b = m[2] ? +m[2] : total; }
       else if (/^\d+$/.test(part)) { a = b = +part; }
-      else throw new Error("Can't understand “" + part + "”. Use e.g. 1-3, 5, 8-");
+      else throw new Error("Can't understand “" + part + "”. Use e.g. 1-3, 5, 8-12");
       if (a < 1 || b > total || a > b) throw new Error("Range “" + part + "” is outside 1–" + total + ".");
       var g = []; for (var i = a; i <= b; i++) g.push(i - 1);
       groups.push(g);
@@ -77,7 +77,7 @@
     return doc.save().then(function (bytes) { return { name: name, blob: pdfBlob(bytes) }; });
   }
 
-  var RANGE_HINT = "e.g. 1-3, 5, 8-";
+  var RANGE_HINT = "Example: 1-3, 5, 8-12 (pages 1 to 3, page 5, pages 8 to 12). Leave empty for all pages.";
   var TOOLS = {
     merge: {
       accept: ".pdf,application/pdf", multiple: true, ordered: true, min: 2, btn: "Merge PDFs",
@@ -151,7 +151,7 @@
       accept: ".pdf,application/pdf", btn: "Rotate PDF",
       options: [
         { id: "angle", label: "Rotate", type: "select", choices: [["90", "90° clockwise"], ["180", "180°"], ["270", "90° counter-clockwise"]] },
-        { id: "pages", label: "Pages", type: "text", value: "", hint: "Leave empty for all pages. " + RANGE_HINT }
+        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT }
       ],
       run: function (files, o) {
         return loadDoc(files[0]).then(function (d) {
@@ -270,7 +270,7 @@
       options: [
         { id: "width", label: "Width (px)", type: "number", value: 480, min: 100, max: 1200 },
         { id: "delay", label: "Seconds per page", type: "number", value: 1, min: 0.1, max: 30, step: 0.1 },
-        { id: "pages", label: "Pages", type: "text", value: "", hint: "Leave empty for all pages. " + RANGE_HINT },
+        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT },
         { id: "quality", label: "Quality", type: "select", value: "10", choices: [["20", "Smaller file"], ["10", "Balanced"], ["1", "Best colours (slow)"]] }
       ],
       run: function (files, o, prog) {
