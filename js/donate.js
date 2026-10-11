@@ -1,8 +1,8 @@
-/* Optional donation counter. 1 cent per processed page, stored in a cookie. Never blocks anything. */
+/* Optional tip counter: 1€ for <100 pages, +1€ per further 100 pages, stored in a cookie. Never blocks anything. */
 (function () {
   var CONFIG = {
-    centsPerPage: 1,
-    kofiUrl: "https://ko-fi.com/djoshi", minCents: 100, // TODO: put your Ko-fi page here, e.g. "https://ko-fi.com/yourname"
+    pagesPerEuro: 100,
+    kofiUrl: "https://ko-fi.com/djoshi",
     cookie: "hp_donation"
   };
 
@@ -26,26 +26,34 @@
     if (consent() !== "yes") return;
     var v = [s.pending, s.paid, s.pages].join("|");
     document.cookie = CONFIG.cookie + "=" + encodeURIComponent(v) + ";max-age=" + 3600 * 24 * 365 * 2 + ";path=/;SameSite=Lax";
-  }  function eur(c) { return "€" + (c / 100).toFixed(2); }
-  function kofiLink(s) {
-    var url = new URL(CONFIG.kofiUrl);
-    url.searchParams.set("amount", ((CONFIG.minCents + s.pending) / 100).toFixed(2));
-    url.searchParams.set("currency", "EUR");
-    return url.toString();
   }
-
+  // Ko-fi only accepts whole euros, so the tip is 1€ plus 1€ for every full 100 pages.
+  function tip(s) { return 1 + Math.floor(s.pending / CONFIG.pagesPerEuro); }
+  function eur(c) { return (c / 100) + "€"; }
+  function tipLabel(s) { return tip(s) + "€"; }
+  function toast(msg) {
+    var old = document.querySelector(".tip-toast"); if (old) old.remove();
+    var t = document.createElement("div"); t.className = "tip-toast"; t.setAttribute("role", "status"); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 9000);
+  }
+  function openKofi(s) {
+    var amount = tip(s);
+    try { if (navigator.clipboard) navigator.clipboard.writeText(String(amount)).catch(function () {}); } catch (e) {}
+    toast("Ko-fi is opening – please enter " + amount + "€ as your tip. Thank you! 🎩");
+    window.open(CONFIG.kofiUrl, "_blank", "noopener");
+  }
   var Donate = {
     state: readCookie(),
     add: function (pages) {
       this.state = readCookie();
-      this.state.pending += pages * CONFIG.centsPerPage;
+      this.state.pending += pages;
       this.state.pages += pages;
       save(this.state);
       this.refresh();
     },
     markPaid: function () {
       this.state = readCookie();
-      this.state.paid += CONFIG.minCents + this.state.pending;
+      this.state.paid += tip(this.state) * 100;
       this.state.pending = 0;
       save(this.state);
       this.refresh();
@@ -55,8 +63,8 @@
       this.state = readCookie();
       var s = this.state;
       document.querySelectorAll("[data-donate-chip]").forEach(function (el) {
-        el.textContent = "*tips hat* 🎩 · " + eur(CONFIG.minCents + s.pending);
-        if (CONFIG.kofiUrl) { el.href = kofiLink(s); el.target = "_blank"; el.rel = "noopener"; }
+        el.textContent = "*tips hat* 🎩 · " + tipLabel(s);
+        el.href = CONFIG.kofiUrl; el.onclick = function (ev) { ev.preventDefault(); openKofi(Donate.state); };
       });
       document.querySelectorAll("[data-donate-box]").forEach(function (b) { Donate.render(b); });
     },
@@ -67,18 +75,17 @@
       h.textContent = "Enjoying this tool?";
       var p = document.createElement("p");
       p.textContent = s.pending > 0
-        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + eur(CONFIG.minCents + s.pending) + " (€1.00 minimum + 1 ct per page). It is entirely optional – everything stays free."
-        : "Everything is free and runs on your device. If it helped, a small tip of €1.00 plus 1 ct per page keeps it that way – entirely optional.";
+        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + tipLabel(s) + " (1€ per 100 pages processed). It is entirely optional – everything stays free."
+        : "Everything is free and runs on your device. If it helped, a small tip of 1€ (plus 1€ per 100 pages) keeps it that way – entirely optional.";
       var row = document.createElement("div");
       row.className = "row";
       var d = document.createElement("button");
       d.className = "btn";
-      d.textContent = "*tips hat* 🎩 · " + eur(CONFIG.minCents + s.pending);
+      d.textContent = "*tips hat* 🎩 · " + tipLabel(s);
       var note = document.createElement("p");
       note.style.fontSize = "1rem";
       d.onclick = function () {
-        if (CONFIG.kofiUrl) { window.open(kofiLink(s), "_blank", "noopener"); }
-        else { note.textContent = "Ko-fi support is coming soon – thank you for the thought!"; }
+        openKofi(s);
       };
       row.appendChild(d);
       if (s.pending > 0) {
@@ -107,7 +114,7 @@
     o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf pangea</h2>' +
       '<ul><li><b>🌬️ Clouds go home! Your files stay on this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
       '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
-      '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1 ct per page</b> is appreciated – never required.</li></ul>' +
+      '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1€</b> (+1€ per 100 pages) is appreciated – never required.</li></ul>' +
       '<button class="btn" type="button">Got it, let\'s go</button></div>';
     var b = o.querySelector("button");
     function close() { o.remove(); document.removeEventListener("keydown", esc); }

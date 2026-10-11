@@ -171,7 +171,7 @@ EXTRA = {
 cards = "".join(f'<a class="card" href="{s}.html" style="--c:{c}"><div class="ico">{i}</div><h3>{t}</h3><p>{d}</p></a>' for s,t,i,c,d,*_ in T)
 feat = '''<section class="features"><div><h3>🔒 Private by design</h3><p>Files are processed inside your browser. Nothing is uploaded, stored or seen by anyone else.</p></div>
 <div><h3>⚡ Fast &amp; light</h3><p>Small tools load only when needed, then are cached so the site keeps working offline.</p></div>
-<div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (€1 + 1 ct per page) keeps the lights on.</p></div></section>'''
+<div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (1€, plus 1€ per 100 pages) keeps the lights on.</p></div></section>'''
 meta = {t[9]: {"slug": t[0], "title": t[1], "h1": t[5], "intro": t[6]} for t in T}
 IC = {
  "merge":'<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/>',
@@ -197,7 +197,7 @@ LBL["home"] = "Home"
 home_cards = "".join(f'<a class="card" href="{t[0]}.html" data-tool="{t[9]}" style="--c:{t[3]}"><div class="ico">{svg(t[9])}</div><h3>{t[1]}</h3><p>{t[4]}</p></a>' for t in T)
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
 HOME_FAQ = [("Are my PDF files uploaded to a server?","No. All tools run inside your browser, so your files never leave your device."),
- ("Is pdf pangea really free?","Yes. There is no sign-up, no watermark and no file limit. An optional tip starting at €1 plus 1 cent per processed page supports the project."),
+ ("Is pdf pangea really free?","Yes. There is no sign-up, no watermark and no file limit. An optional tip of 1€ (plus 1€ for every 100 processed pages) supports the project."),
  ("Does it work offline?","Yes. After your first visit the tools are cached and keep working without an internet connection."),
  ("Which PDF tools are available?","Merge, split, compress, rotate, organize, sign, watermark, add page numbers, remove or extract pages, PDF to JPG/PNG, JPG to PDF, PDF to text, PDF to GIF and GIF to PDF.")]
 body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
@@ -218,7 +218,7 @@ page("index.html", f"Free PDF Tools: Merge, Split, Compress – {NAME}",
 for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
     pages.append(slug+".html")
     X = EXTRA[slug]
-    faqs = list(faqs) + X[3] + [("Is it really free and private?","Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional tip (€1 plus 1 cent per processed page) is only a suggestion."),("Does it work offline?","Yes. After the first visit the tools are cached by your browser and keep working without an internet connection.")]
+    faqs = list(faqs) + X[3] + [("Is it really free and private?","Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional tip (1€, plus 1€ per 100 processed pages) is only a suggestion."),("Does it work offline?","Yes. After the first visit the tools are cached by your browser and keep working without an internet connection.")]
     related = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T if s != slug)
     st = "".join(f"<li>{x}</li>" for x in steps)
     fq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in faqs)
@@ -258,8 +258,8 @@ page("privacy.html", f"Datenschutzerklärung / Privacy – {NAME}", "Datenschutz
 <h2>7. Ihre Rechte</h2><p>Sie haben das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21 DSGVO) sowie das Recht, eine Einwilligung jederzeit mit Wirkung für die Zukunft zu widerrufen. Da wir keine personenbezogenen Daten über Sie speichern, können wir Anfragen zu Daten auf Ihrem Gerät nicht zuordnen; diese löschen Sie direkt im Browser. Sie haben zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren, z. B. der für Ihren Wohnort zuständigen Landesdatenschutzbehörde.</p>
 <h2>8. Aktualität</h2><p>Stand: Oktober 2026. Wir passen diese Erklärung an, wenn sich die Website oder die Rechtslage ändert.</p></section></main>''',
  [org], ("js/donate.js",))
-page("support.html", f"Support {NAME}", "Everything is free. Optionally support the project with a tiny donation of 1 cent per page.",
- f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip €1 plus 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
+page("support.html", f"Support {NAME}", "Everything is free. Optionally support the project with a tiny tip of 1€ (plus 1€ per 100 pages).",
+ f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip 1€, plus 1€ for every 100 pages you processed. Ko-fi only takes whole euros. The counter below is kept in a cookie in your browser.</p>
 <div class="donate" data-donate-box></div></section></main>''', [org], ("js/donate.js",))
 
 def prio(p): return "1.0" if p=="index.html" else ("0.9" if p in ("merge-pdf.html","compress-pdf.html","pdf-to-jpg.html","jpg-to-pdf.html","split-pdf.html") else ("0.3" if p in ("privacy.html","impressum.html","support.html") else "0.8"))

@@ -217,3 +217,4 @@ header.site .logo svg{width:24px;height:24px}
 }
 .opts input[type=range]{width:100%;accent-color:var(--terra,#b5651d)}
 .estimate{margin:.6rem 0;padding:.55rem .8rem;background:var(--sand,#f3e7d3);border-radius:10px;font-weight:600}
+.tip-toast{position:fixed;left:50%;bottom:4.5rem;transform:translateX(-50%);z-index:60;max-width:min(92vw,28rem);padding:.8rem 1.1rem;background:var(--brown,#30251f);color:#fffaf1;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.3);font-weight:600;text-align:center}
