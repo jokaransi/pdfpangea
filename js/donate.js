@@ -126,9 +126,10 @@
     o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf pangea</h2>' +
       '<ul><li><b>🌬️ Clouds go home! Your files stay on this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
       '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
-      '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1€</b> (+1€ per 100 pages) is appreciated – never required.</li></ul>' +
+      '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1€</b> (+1€ per 100 pages) is appreciated – never required.</li>' +
+      (consent() === null ? '<li><b>🍪 1 cookie</b> remembers your optional tip counter. <b>No tracking, no ads, nothing shared.</b> <a href="privacy.html">Details</a></li>' : '') + '</ul>' +
       (consent() === null
-        ? '<p class="wcookie">🍪 We’d like to save one small cookie that remembers your optional tip counter. No tracking, no ads, nothing shared. <a href="privacy.html">Details</a></p><div class="wbtns"><button class="btn" type="button" data-c="yes">Accept &amp; go</button><button class="btn ghost" type="button" data-c="no">No cookie, thanks</button></div>'
+        ? '<div class="wbtns"><button class="btn" type="button" data-c="yes">Accept &amp; go</button></div><button class="wno" type="button" data-c="no">No cookie, thanks</button>'
         : '<div class="wbtns"><button class="btn" type="button">Got it, let\'s go</button></div>') + '</div>';
     function close() { o.remove(); document.removeEventListener("keydown", esc); }
     function esc(e) { if (e.key === "Escape") close(); }
