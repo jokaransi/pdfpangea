@@ -1,4 +1,4 @@
-/* Optional donation counter. 1 cent per processed page, stored in a cookie. Never blocks anything. */
+﻿/* Optional donation counter. 1 cent per processed page, stored in a cookie. Never blocks anything. */
 (function () {
   var CONFIG = {
     centsPerPage: 1,
@@ -82,6 +82,26 @@
       }
     }
   };
-  window.Donate = Donate;
+  document.addEventListener("DOMContentLoaded", function () {
+    var o = document.createElement("div");
+    o.className = "welcome";
+    o.setAttribute("role", "dialog");
+    o.setAttribute("aria-modal", "true");
+    o.setAttribute("aria-labelledby", "wt");
+    o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf PANGEA</h2>' +
+      '<ul><li><b>🔒 Your files never leave this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
+      '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
+      '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1 ct per page</b> is appreciated – never required.</li></ul>' +
+      '<button class="btn" type="button">Got it, let\'s go</button></div>';
+    var b = o.querySelector("button");
+    function close() { o.remove(); document.removeEventListener("keydown", esc); }
+    function esc(e) { if (e.key === "Escape") close(); }
+    b.onclick = close;
+    o.addEventListener("click", function (e) { if (e.target === o) close(); });
+    document.addEventListener("keydown", esc);
+    document.body.appendChild(o);
+    b.focus();
+  });  window.Donate = Donate;
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
+
