@@ -215,3 +215,5 @@ header.site .logo svg{width:24px;height:24px}
 .limits{text-align:left;font-size:.88rem}
 .signature-pad{height:125px}
 }
+.opts input[type=range]{width:100%;accent-color:var(--terra,#b5651d)}
+.estimate{margin:.6rem 0;padding:.55rem .8rem;background:var(--sand,#f3e7d3);border-radius:10px;font-weight:600}

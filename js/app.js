@@ -1,4 +1,4 @@
-/* pdf pangea – all PDF processing happens in the browser. Nothing is uploaded. */
+﻿/* pdf pangea – all PDF processing happens in the browser. Nothing is uploaded. */
 (function () {
   "use strict";
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -181,8 +181,32 @@
     compress: {
       accept: ".pdf,application/pdf", btn: "Compress PDF",
       options: [
-        { id: "level", label: "Compression", type: "select", choices: [["light", "Light – keeps text selectable"], ["medium", "Balanced – pages become images (150 dpi)"], ["strong", "Strong – pages become images (100 dpi)"]] }
+        { id: "level", label: "Method", type: "select", value: "image", choices: [["image", "Re-render pages as images (smallest)"], ["light", "Optimise structure only (text stays selectable)"]] },
+        { id: "dpi", label: "Resolution (DPI)", type: "select", value: "120", show: function (o) { return o.level !== "light"; }, choices: [["72", "72 dpi – screen, smallest"], ["96", "96 dpi"], ["120", "120 dpi"], ["150", "150 dpi – good"], ["200", "200 dpi"], ["300", "300 dpi – print"]] },
+        { id: "quality", label: "Image quality", type: "range", value: "70", min: 10, max: 95, step: 5, unit: "%", show: function (o) { return o.level !== "light"; } }
       ],
+      estimate: function (f, o) {
+        if (o.level === "light") return Promise.resolve("Estimated size: typically " + size(f.size * 0.9) + " – " + size(f.size) + " (small gains only)");
+        var dpi = +o.dpi, q = o.quality / 100;
+        return pdfJsDoc(f).then(function (pdf) {
+          var n = pdf.numPages, idx = [], k = Math.min(3, n), i;
+          for (i = 0; i < k; i++) idx.push(k === 1 ? 1 : 1 + Math.round(i * (n - 1) / (k - 1)));
+          var total = 0, seq = Promise.resolve();
+          idx.forEach(function (p) {
+            seq = seq.then(function () { return pdf.getPage(p); }).then(function (page) {
+              var v = page.getViewport({ scale: dpi / 72 });
+              var c = document.createElement("canvas"); c.width = Math.ceil(v.width); c.height = Math.ceil(v.height);
+              var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+              return page.render({ canvasContext: ctx, viewport: v }).promise.then(function () { return canvasBlob(c, "image/jpeg", q); })
+                .then(function (b) { total += b.size; c.width = c.height = 0; });
+            });
+          });
+          return seq.then(function () {
+            var est = total / idx.length * n + 2000;
+            return "Estimated size: ≈ " + size(est * 0.85) + " – " + size(est * 1.15) + " (original " + size(f.size) + (est >= f.size ? " – may not get smaller" : ", about −" + Math.round(100 - est / f.size * 100) + "%") + ")";
+          });
+        });
+      },
       run: function (files, o, prog) {
         var f = files[0];
         if (o.level === "light") {
@@ -190,7 +214,7 @@
             return finishCompress(f, pdfBlob(bytes), 0);
           });
         }
-        var dpi = o.level === "medium" ? 150 : 100, q = o.level === "medium" ? 0.72 : 0.55;
+        var dpi = +o.dpi, q = o.quality / 100;
         return Promise.all([pdfJsDoc(f), needPdfLib()]).then(function (a) {
           var pdf = a[0], out, n = pdf.numPages;
           return PDFLib.PDFDocument.create().then(function (d) {
@@ -457,7 +481,7 @@
     organize: "Works well up to a few hundred pages; every page is shown as a thumbnail. Password-protected PDFs aren't supported.",
     "sign-pdf": "Adds a drawn signature image near the bottom-right of selected pages. This is not a qualified electronic signature. Password-protected PDFs aren't supported.",
     rotate: "Works well up to a few hundred pages. Rotation is in steps of 90°. Password-protected PDFs aren't supported.",
-    compress: "Light keeps text selectable; Balanced and Strong turn pages into images (text is no longer selectable). If the result isn't smaller, we keep your original. Password-protected PDFs aren't supported.",
+    compress: "Re-rendering turns pages into images (text is no longer selectable); structure-only keeps text. The size estimate is approximate. If the result isn't smaller, we keep your original. Password-protected PDFs aren't supported.",
     "pdf-to-jpg": "Long PDFs at 300 dpi need a lot of memory – pick a lower quality if your browser slows down. Results are offered as one ZIP.",
     "jpg-to-pdf": "Accepts JPG, PNG, WebP, GIF and BMP. Very large photos use a lot of memory, so convert big batches in parts.",
     "pdf-to-gif": "Up to 200 pages per GIF, 100–1200 px wide. GIFs are limited to 256 colours, so photos look grainier than in the PDF.",
@@ -511,7 +535,7 @@
         files: [{ name: base(f.name) + "-compressed.pdf", blob: better ? blob : f }],
         pages: n || pages,
         note: better ? "Reduced from " + size(f.size) + " to " + size(blob.size) + " (−" + Math.round(100 - blob.size / f.size * 100) + "%)."
-          : "This file is already well optimised – we kept the original (" + size(f.size) + "). Try a stronger level."
+          : "This file is already well optimised – we kept the original (" + size(f.size) + "). Try a lower DPI or quality."
       };
     });
   }
@@ -583,15 +607,29 @@
           if (d.min !== undefined) inp.min = d.min; if (d.max !== undefined) inp.max = d.max; if (d.step !== undefined) inp.step = d.step;
         }
         inp.id = "o-" + d.id; inp.value = opts[d.id];
-        var redraw = d.id === "mode" || d.id === "size";
-        inp.oninput = function () { opts[d.id] = inp.value; };
-        inp.onchange = function () { opts[d.id] = inp.value; if (redraw) drawOpts(); };
-        var box = h("div", {}, [h("label", { for: inp.id, text: d.label }), inp]);
+        var redraw = d.id === "mode" || d.id === "size" || d.id === "level";
+        var lab = h("label", { for: inp.id, text: d.label + (d.type === "range" ? ": " + opts[d.id] + (d.unit || "") : "") });
+        inp.oninput = function () { opts[d.id] = inp.value; if (d.type === "range") lab.textContent = d.label + ": " + inp.value + (d.unit || ""); schedEst(); };
+        inp.onchange = function () { opts[d.id] = inp.value; if (redraw) drawOpts(); schedEst(); };
+        var box = h("div", {}, [lab, inp]);
         if (d.hint) box.appendChild(h("small", { text: d.hint }));
         optBox.appendChild(box);
       });
     }
     drawOpts();
+    var estBox = h("p", { class: "estimate", hidden: "" }), estTimer = 0, estTok = 0;
+    optBox.parentNode.insertBefore(estBox, optBox.nextSibling);
+    function schedEst() {
+      if (!T.estimate) return;
+      clearTimeout(estTimer);
+      if (!files.length) { estBox.hidden = true; return; }
+      estBox.hidden = false; estBox.textContent = "Estimating size…";
+      var tok = ++estTok;
+      estTimer = setTimeout(function () {
+        T.estimate(files[0], opts).then(function (t) { if (tok === estTok) estBox.textContent = t; })
+          .catch(function () { if (tok === estTok) estBox.hidden = true; });
+      }, 450);
+    }
 
     function msg(t, err) { status.textContent = t || ""; status.className = "status" + (err ? " err" : ""); }
     function sync() {
@@ -638,7 +676,7 @@
       else if (T.multiple) files.forEach(function (f) { seq = seq.then(function () { return alive() && pdfThumbs(grid, f, "first", f.name, alive); }).catch(function () {}); });
       else pdfThumbs(grid, files[0], "all", "Page ", alive).catch(function () {});
     }
-    function fileChange() { drawList(); sync(); drawInputPreview(); if (T.organizer) drawOrganizer(); }
+    function fileChange() { drawList(); sync(); drawInputPreview(); schedEst(); if (T.organizer) drawOrganizer(); }
 
     function add(fl) {
       var arr = Array.prototype.slice.call(fl);
@@ -779,5 +817,6 @@
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 })();
+
 
 

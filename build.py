@@ -1,4 +1,4 @@
-"""Static site generator. Run: python build.py   (set SITE_URL for production)"""
+﻿"""Static site generator. Run: python build.py   (set SITE_URL for production)"""
 import json, os, html
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8080").rstrip("/")
@@ -37,7 +37,7 @@ T = [
  ("compress-pdf","Compress PDF","🗜","#8f3e20","Make PDFs smaller for email and upload.","Compress PDF to a smaller size",
   "Shrink PDF file size right in your browser. Choose a light lossless pass or stronger compression that re-renders pages as optimised images.",
   ["Add your PDF.","Pick a compression level.","Download the smaller file – we keep the original if we can't improve it."],
-  [("Will text stay selectable?","With “Light” yes. “Balanced” and “Strong” turn pages into images for much smaller files, so text is no longer selectable.")],"compress"),
+  [("Will text stay selectable?","If you choose “Optimise structure only”, yes. Re-rendering pages as images gives much smaller files, but text is no longer selectable. You can set DPI and image quality and see an estimated size first.")],"compress"),
  ("pdf-to-jpg","PDF to JPG","🖼","#d49a3a","Turn every page into an image.","Convert PDF to JPG or PNG",
   "Export each PDF page as a high-quality JPG or PNG image, locally and without uploads.",
   ["Add your PDF.","Choose format and quality.","Download images individually or as a ZIP."],
@@ -198,6 +198,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request,{{cache:"no-cache"}}).then(r=>{{if(r.ok){{const k=r.clone();caches.open(C).then(c=>c.put(e.request,k))}}return r}}).catch(()=>caches.match(e.request,{{ignoreSearch:true}})))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 
