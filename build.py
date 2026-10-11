@@ -95,7 +95,8 @@ feat = '''<section class="features"><div><h3>🔒 Private by design</h3><p>Files
 <div><h3>⚡ Fast &amp; light</h3><p>Small tools load only when needed, then are cached so the site keeps working offline.</p></div>
 <div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (1 ct per page) keeps the lights on.</p></div></section>'''
 meta = {t[9]: {"slug": t[0], "title": t[1], "h1": t[5], "intro": t[6]} for t in T}
-rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}" aria-label="{e(t[1])}"><span>{t[2]}</span></a>' for t in T)
+LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"ToImage","jpg-to-pdf":"ToPDF","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"ToText"}
+rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{t[2]}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
 body = f'''<div class="app"><aside class="rail">{rail}</aside>
 <main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
@@ -144,6 +145,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{{ignoreSearch:true}}).then(r=>r||fetch(e.request)))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 
