@@ -71,7 +71,7 @@ def header():
 <nav class="main"><a class="hide-s" href="privacy.html">Privacy</a><a class="chip" href="support.html" data-donate-chip>♥ Donate</a></nav></div></header>'''
 def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
-    return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="support.html">Support</a></div></div></footer>'''
+    return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="support.html">Support</a><a href="#" data-cookie-settings>Cookie settings</a></div></div></footer>'''
 
 def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bcls=""):
     url = f"{SITE_URL}/{'' if fn=='index.html' else fn}"
@@ -141,7 +141,7 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
 pages += ["privacy.html","support.html"]
 page("privacy.html", f"Privacy – {NAME}", "Your files never leave your device. Learn what little is stored.",
  '''<main class="wrap"><section class="prose"><h1>Privacy</h1><p>All PDF and image processing happens inside your browser. Your files are not uploaded, transmitted or stored on any server.</p>
-<h2>What is stored</h2><p>A single cookie (<code>hp_donation</code>) on your device remembers how many pages you processed and how much you chose to donate. It contains no personal data and is never required to use the tools. The site also caches its own files so it can work offline.</p></section></main>''',
+<h2>What is stored</h2><p>If you accept, a single cookie (<code>hp_donation</code>) is saved on your device. It remembers how many pages you processed and how much you chose to donate. It contains no personal data, is never used for tracking or advertising, and nothing is shared with anyone. There are no ads and no third-party cookies. The tools work the same if you decline; the counter then only lasts until you close the page. Your choice is stored in your browser's local storage. You can change it any time via “Cookie settings” in the footer. The site also caches its own files so it can work offline.</p></section></main>''',
  [org], ("js/donate.js",))
 page("support.html", f"Support {NAME}", "Everything is free. Optionally support the project with a tiny donation of 1 cent per page.",
  f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
@@ -160,6 +160,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{{ignoreSearch:true}}).then(r=>r||fetch(e.request)))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 

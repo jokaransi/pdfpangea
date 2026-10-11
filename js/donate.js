@@ -6,19 +6,27 @@
     cookie: "hp_donation"
   };
 
+  // The donation cookie is only written after the visitor accepts; the choice itself is kept in localStorage.
+  var CONSENT_KEY = "pp_consent", mem = { pending: 0, paid: 0, pages: 0 };
+  function consent() { try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; } }
+  function setConsent(v) {
+    try { localStorage.setItem(CONSENT_KEY, v); } catch (e) {}
+    if (v === "yes") save(mem);
+    else document.cookie = CONFIG.cookie + "=;max-age=0;path=/;SameSite=Lax";
+  }
   function readCookie() {
+    if (consent() !== "yes") return mem;
     var m = document.cookie.match(new RegExp("(?:^|; )" + CONFIG.cookie + "=([^;]*)"));
-    var raw = m ? decodeURIComponent(m[1]) : null;
-    if (!raw) { try { raw = localStorage.getItem(CONFIG.cookie); } catch (e) {} }
-    var p = (raw || "0|0|0").split("|").map(function (x) { return parseInt(x, 10) || 0; });
-    return { pending: p[0], paid: p[1], pages: p[2] };
+    var p = (m ? decodeURIComponent(m[1]) : "0|0|0").split("|").map(function (x) { return parseInt(x, 10) || 0; });
+    mem = { pending: p[0], paid: p[1], pages: p[2] };
+    return mem;
   }
   function save(s) {
+    mem = { pending: s.pending, paid: s.paid, pages: s.pages };
+    if (consent() !== "yes") return;
     var v = [s.pending, s.paid, s.pages].join("|");
     document.cookie = CONFIG.cookie + "=" + encodeURIComponent(v) + ";max-age=" + 3600 * 24 * 365 * 2 + ";path=/;SameSite=Lax";
-    try { localStorage.setItem(CONFIG.cookie, v); } catch (e) {}
-  }
-  function eur(c) { return "€" + (c / 100).toFixed(2); }
+  }  function eur(c) { return "€" + (c / 100).toFixed(2); }
 
   var Donate = {
     state: readCookie(),
@@ -102,7 +110,29 @@
     document.body.appendChild(o);
     b.focus();
   });  window.Donate = Donate;
+  function showConsent() {
+    var old = document.querySelector(".cookie-note"); if (old) old.remove();
+    var c = document.createElement("div");
+    c.className = "cookie-note";
+    c.setAttribute("role", "region");
+    c.setAttribute("aria-label", "Cookie notice");
+    c.innerHTML = '<p><b>One small cookie, no ads.</b> We’d like to save a single cookie that remembers your optional tip counter. No tracking, no advertising, nothing shared. <a href="privacy.html">Details</a></p>' +
+      '<div><button type="button" class="btn sm" data-c="yes">Accept</button><button type="button" class="btn ghost sm" data-c="no">No thanks</button></div>';
+    c.addEventListener("click", function (e) {
+      var v = e.target.getAttribute && e.target.getAttribute("data-c"); if (!v) return;
+      setConsent(v); c.remove(); Donate.refresh();
+    });
+    document.body.appendChild(c);
+  }
+  Donate.showConsent = showConsent;
+  document.addEventListener("DOMContentLoaded", function () {
+    if (consent() === null) showConsent();
+    document.querySelectorAll("[data-cookie-settings]").forEach(function (a) {
+      a.addEventListener("click", function (e) { e.preventDefault(); showConsent(); });
+    });
+  });
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
+
 
 
