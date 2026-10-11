@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://jokaransi.github.io/hearth-pdf/sitemap.xml

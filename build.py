@@ -1,0 +1,148 @@
+﻿"""Static site generator. Run: python build.py   (set SITE_URL for production)"""
+import json, os, html
+ROOT = os.path.dirname(os.path.abspath(__file__))
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8080").rstrip("/")
+NAME = "Hearth PDF"
+
+# slug, short title, emoji, colour, card text, h1, intro, steps, faqs, scripts
+T = [
+ ("merge-pdf","Merge PDF","⛓","#b5532f","Combine several PDFs into one.","Merge PDF files online, free",
+  "Combine multiple PDF files into a single document in the order you want. It runs entirely in your browser – your files are never uploaded.",
+  ["Add two or more PDF files.","Drag them (or use the arrows) into the right order.","Click “Merge PDFs” and download the result."],
+  [("Is there a limit on files or size?","No fixed limit. Because everything runs on your device, the only limit is your computer's memory."),("Are my PDFs uploaded anywhere?","No. Merging happens locally in your browser.")],"merge"),
+ ("split-pdf","Split PDF","✂","#6c7a3b","Separate pages or ranges into new files.","Split a PDF into several files",
+  "Cut a PDF into separate documents by page ranges, every N pages or one file per page – privately, on your device.",
+  ["Add a PDF.","Choose how to split: ranges like 1-3, 4-6, every N pages, or every page.","Download each file or all of them as a ZIP."],
+  [("Can I split by custom ranges?","Yes – enter comma-separated ranges such as 1-3, 4-6, 7-. Each range becomes its own PDF.")],"split"),
+ ("remove-pages","Remove pages","🗑","#8f3e20","Delete unwanted pages from a PDF.","Remove pages from a PDF",
+  "Delete one or many pages from a PDF in seconds. Just type the page numbers or ranges to drop.",
+  ["Add your PDF.","Enter the pages to remove, e.g. 2, 5-7.","Download the cleaned-up PDF."],
+  [("Does it change the remaining pages?","No. Remaining pages are copied unchanged, so text and quality stay intact.")],"remove-pages"),
+ ("extract-pages","Extract pages","📑","#d49a3a","Pull selected pages into a new PDF.","Extract pages from a PDF",
+  "Create a new PDF containing only the pages you pick. Page order follows what you type.",
+  ["Add your PDF.","Enter the pages you want, e.g. 1, 3-5.","Download the new PDF."],
+  [("Can I reorder while extracting?","Yes – entering “3,1” puts page 3 before page 1.")],"extract-pages"),
+ ("organize-pdf","Organize PDF","🗂","#6c7a3b","Reorder, rotate and delete pages visually.","Organize PDF pages – reorder, rotate, delete",
+  "See every page as a thumbnail. Drag to reorder, rotate or delete pages, then save your new PDF.",
+  ["Add your PDF and wait for thumbnails.","Drag pages, rotate with ⟳, delete with ✕.","Click “Save PDF”."],
+  [("Does it work with large PDFs?","Yes, thumbnails are rendered one at a time to keep memory low.")],"organize"),
+ ("rotate-pdf","Rotate PDF","⟳","#b5532f","Turn pages 90°, 180° or 270°.","Rotate PDF pages",
+  "Fix sideways scans by rotating all pages – or only selected ones – permanently.",
+  ["Add your PDF.","Choose the angle and optionally the pages.","Download the rotated PDF."],
+  [("Can I rotate only some pages?","Yes, type the pages (e.g. 2-4) or leave empty for all.")],"rotate"),
+ ("compress-pdf","Compress PDF","🗜","#8f3e20","Make PDFs smaller for email and upload.","Compress PDF to a smaller size",
+  "Shrink PDF file size right in your browser. Choose a light lossless pass or stronger compression that re-renders pages as optimised images.",
+  ["Add your PDF.","Pick a compression level.","Download the smaller file – we keep the original if we can't improve it."],
+  [("Will text stay selectable?","With “Light” yes. “Balanced” and “Strong” turn pages into images for much smaller files, so text is no longer selectable.")],"compress"),
+ ("pdf-to-jpg","PDF to JPG","🖼","#d49a3a","Turn every page into an image.","Convert PDF to JPG or PNG",
+  "Export each PDF page as a high-quality JPG or PNG image, locally and without uploads.",
+  ["Add your PDF.","Choose format and quality.","Download images individually or as a ZIP."],
+  [("What resolution should I pick?","150 dpi is good for screens; 300 dpi for print.")],"pdf-to-jpg"),
+ ("jpg-to-pdf","JPG to PDF","📷","#6c7a3b","Combine images into a PDF.","Convert JPG, PNG and other images to PDF",
+  "Turn photos and scans (JPG, PNG, WebP, GIF, BMP) into one PDF. Set page size, margins and order.",
+  ["Add your images.","Arrange the order and choose page size.","Click “Create PDF”."],
+  [("Which image formats work?","JPG, PNG, WebP, GIF and BMP – anything your browser can display.")],"jpg-to-pdf"),
+ ("watermark-pdf","Add watermark","💧","#b5532f","Stamp text across every page.","Add a text watermark to a PDF",
+  "Add a diagonal or horizontal text watermark with custom size, colour and opacity to every page.",
+  ["Add your PDF.","Type the text and style it.","Download the watermarked PDF."],
+  [("Can I use any characters?","The built-in font supports Latin characters.")],"watermark"),
+ ("add-page-numbers","Page numbers","🔢","#8f3e20","Number your pages in seconds.","Add page numbers to a PDF",
+  "Insert page numbers at any corner or centre, with formats like “Page 1 of 10” and a custom start number.",
+  ["Add your PDF.","Choose position, format and start number.","Download the numbered PDF."],
+  [("Can I start from a number other than 1?","Yes, set “Start at”.")],"page-numbers"),
+ ("pdf-to-text","PDF to text","📝","#d49a3a","Extract the text from a PDF.","Extract text from a PDF",
+  "Copy out all text from a PDF as a plain .txt file – nothing leaves your device.",
+  ["Add your PDF.","Click “Extract text”.","Download the .txt file."],
+  [("Does it work on scans?","Only if the PDF contains real text. Scanned images need OCR, which is not included.")],"pdf-to-text"),
+]
+def e(s): return html.escape(s, quote=True)
+LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#b5532f"/><path d="M9 7h9l5 5v13H9z" fill="#fffaf1"/><path d="M18 7v5h5" fill="#e4c9a0"/><path d="M12 17h8M12 21h6" stroke="#6c7a3b" stroke-width="1.8" stroke-linecap="round"/></svg>'
+
+MENUS = [("Organize", ["merge-pdf","split-pdf","extract-pages","remove-pages","organize-pdf","rotate-pdf"]),
+         ("Convert", ["pdf-to-jpg","jpg-to-pdf","pdf-to-text"]),
+         ("Edit", ["watermark-pdf","add-page-numbers"]),
+         ("Optimize", ["compress-pdf"])]
+def tool_link(s, cls=""):
+    t = next(x for x in T if x[0] == s)
+    return f'<a {cls} href="{s}.html" data-tool="{t[9]}">{t[2]} {t[1]}</a>'
+def header():
+    menus = "".join(f'<div class="menu"><button type="button">{n} ▾</button><div class="dd">{"".join(tool_link(s) for s in items)}</div></div>' for n, items in MENUS)
+    return f'''<header class="site"><div class="bar"><a class="logo" href="index.html">{LOGO}{NAME}</a>
+<nav class="menus">{menus}</nav><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a><a class="chip" href="support.html" data-donate-chip>♥ Donate</a></nav></div></header>'''
+def footer():
+    links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
+    return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="support.html">Support</a></div></div></footer>'''
+
+def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bcls=""):
+    url = f"{SITE_URL}/{'' if fn=='index.html' else fn}"
+    ldj = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in ld)
+    sc = "".join(f'<script src="{s}" defer></script>' for s in scripts)
+    out = f'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(title)}</title><meta name="description" content="{e(desc)}">
+<link rel="canonical" href="{url}"><meta name="theme-color" content="#b5532f">
+<meta property="og:type" content="website"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url}"><meta property="og:site_name" content="{NAME}">
+<meta name="twitter:card" content="summary"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="fonts/ebgaramond-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">{extra_head}{ldj}</head><body class="{bcls}">
+{header()}{body}{footer()}{sc}</body></html>'''
+    open(os.path.join(ROOT, fn), "w", encoding="utf-8").write(out)
+
+pages = ["index.html"]
+org = {"@context":"https://schema.org","@type":"Organization","name":NAME,"url":SITE_URL}
+cards = "".join(f'<a class="card" href="{s}.html" style="--c:{c}"><div class="ico">{i}</div><h3>{t}</h3><p>{d}</p></a>' for s,t,i,c,d,*_ in T)
+feat = '''<section class="features"><div><h3>🔒 Private by design</h3><p>Files are processed inside your browser. Nothing is uploaded, stored or seen by anyone else.</p></div>
+<div><h3>⚡ Fast &amp; light</h3><p>Small tools load only when needed, then are cached so the site keeps working offline.</p></div>
+<div><h3>🌿 Free, forever</h3><p>No sign-up, no watermarks, no limits. A tiny optional tip (1 ct per page) keeps the lights on.</p></div></section>'''
+meta = {t[9]: {"slug": t[0], "title": t[1], "h1": t[5], "intro": t[6]} for t in T}
+rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}" aria-label="{e(t[1])}"><span>{t[2]}</span></a>' for t in T)
+body = f'''<div class="app"><aside class="rail">{rail}</aside>
+<main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
+<script id="meta" type="application/json">{json.dumps(meta)}</script>
+<div class="statusbar"><span>🔒 Files never leave this device</span><span>Works offline</span><span>Free · optional tip 1 ct / page</span></div>
+<div class="wrap"><section class="prose"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
+<section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p></section></div>'''
+page("index.html", f"{NAME} – Free private PDF tools: merge, split, compress, convert",
+     "Free PDF tools that run in your browser: merge, split, compress, rotate, convert PDF to JPG and JPG to PDF. No upload, no sign-up, works offline.",
+     body, [org, {"@context":"https://schema.org","@type":"WebSite","name":NAME,"url":SITE_URL+"/"},
+            {"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":i+1,"url":f"{SITE_URL}/{t[0]}.html","name":t[1]} for i,t in enumerate(T)]}], ("js/donate.js","js/app.js"), bcls="shell")
+
+for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
+    pages.append(slug+".html")
+    related = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T if s != slug)
+    st = "".join(f"<li>{x}</li>" for x in steps)
+    fq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in faqs)
+    fq += "<details><summary>Is it really free and private?</summary><p>Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional donation (1 cent per processed page) is only a suggestion.</p></details>"
+    body = f'''<main class="wrap"><section class="tool-head"><div class="crumbs"><a href="index.html">Home</a> › {title}</div><h1>{h1}</h1><p>{intro}</p></section>
+<div id="tool" data-tool="{tool}"><noscript><div class="panel">Please enable JavaScript – the tool runs in your browser.</div></noscript></div>
+<section class="prose"><h2>How to: {title.lower()}</h2><ol>{st}</ol><h2>Questions</h2>{fq}<h2>More PDF tools</h2><div class="tags">{related}</div></section></main>'''
+    ld = [org,
+      {"@context":"https://schema.org","@type":"SoftwareApplication","name":f"{NAME} – {title}","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":intro,"url":f"{SITE_URL}/{slug}.html"},
+      {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in faqs]},
+      {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL+"/"},{"@type":"ListItem","position":2,"name":title,"item":f"{SITE_URL}/{slug}.html"}]}]
+    page(slug+".html", f"{h1} – {NAME}", intro[:155], body, ld, ("js/donate.js","js/app.js"))
+
+pages += ["privacy.html","support.html"]
+page("privacy.html", f"Privacy – {NAME}", "Your files never leave your device. Learn what little is stored.",
+ '''<main class="wrap"><section class="prose"><h1>Privacy</h1><p>All PDF and image processing happens inside your browser. Your files are not uploaded, transmitted or stored on any server.</p>
+<h2>What is stored</h2><p>A single cookie (<code>hp_donation</code>) on your device remembers how many pages you processed and how much you chose to donate. It contains no personal data and is never required to use the tools. The site also caches its own files so it can work offline.</p></section></main>''',
+ [org], ("js/donate.js",))
+page("support.html", f"Support {NAME}", "Everything is free. Optionally support the project with a tiny donation of 1 cent per page.",
+ f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
+<div class="donate" data-donate-box></div></section></main>''', [org], ("js/donate.js",))
+
+today = __import__("datetime").date.today().isoformat()
+open(os.path.join(ROOT,"sitemap.xml"),"w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f'<url><loc>{SITE_URL}/{"" if p=="index.html" else p}</loc><lastmod>{today}</lastmod></url>' for p in pages)+'</urlset>')
+open(os.path.join(ROOT,"robots.txt"),"w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
+open(os.path.join(ROOT,"favicon.svg"),"w").write(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))
+json.dump({"name":NAME,"short_name":"Hearth PDF","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
+pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js"]
+ver = str(int(max(os.path.getmtime(os.path.join(ROOT,p)) for p in pre)))
+open(os.path.join(ROOT,"sw.js"),"w").write(f'''const C="hearth-{ver}",A={json.dumps(pre)};
+self.addEventListener("install",e=>{{e.waitUntil(caches.open(C).then(c=>Promise.allSettled(A.map(u=>c.add(u)))).then(()=>self.skipWaiting()))}});
+self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))}});
+self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{{ignoreSearch:true}}).then(r=>r||fetch(e.request)))}});
+''')
+print("built", len(pages), "pages for", SITE_URL)
+
+
