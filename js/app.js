@@ -265,7 +265,91 @@
         });
       }
     },
-    watermark: {
+    "pdf-to-gif": {
+      accept: ".pdf,application/pdf", btn: "Create GIF",
+      options: [
+        { id: "width", label: "Width (px)", type: "number", value: 480, min: 100, max: 1200 },
+        { id: "delay", label: "Seconds per page", type: "number", value: 1, min: 0.1, max: 30, step: 0.1 },
+        { id: "pages", label: "Pages", type: "text", value: "", hint: "Leave empty for all pages. " + RANGE_HINT },
+        { id: "quality", label: "Quality", type: "select", value: "10", choices: [["20", "Smaller file"], ["10", "Balanced"], ["1", "Best colours (slow)"]] }
+      ],
+      run: function (files, o, prog) {
+        var f = files[0];
+        return Promise.all([pdfJsDoc(f), loadScript("vendor/gif.js")]).then(function (a) {
+          var pdf = a[0], idx = o.pages.trim() ? parseRanges(o.pages, pdf.numPages) : Array.from({ length: pdf.numPages }, function (_, i) { return i; });
+          if (idx.length > 200) throw new Error("Please choose at most 200 pages for a GIF.");
+          var W = Math.max(100, Math.min(1200, +o.width || 480)), H = 0, gif, seq = Promise.resolve();
+          idx.forEach(function (pi, k) {
+            seq = seq.then(function () { return pdf.getPage(pi + 1); }).then(function (page) {
+              var v0 = page.getViewport({ scale: 1 });
+              if (!H) {
+                H = Math.round(W * v0.height / v0.width);
+                gif = new GIF({ workers: 2, quality: +o.quality, width: W, height: H, workerScript: "vendor/gif.worker.js" });
+              }
+              var s = Math.min(W / v0.width, H / v0.height), v = page.getViewport({ scale: s });
+              var c = document.createElement("canvas"); c.width = W; c.height = H;
+              var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+              var t = document.createElement("canvas"); t.width = Math.ceil(v.width); t.height = Math.ceil(v.height);
+              return page.render({ canvasContext: t.getContext("2d"), viewport: v }).promise.then(function () {
+                ctx.drawImage(t, (W - t.width) / 2, (H - t.height) / 2);
+                gif.addFrame(c, { delay: Math.round((+o.delay || 1) * 1000) });
+                prog(0.5 * (k + 1) / idx.length);
+              });
+            });
+          });
+          return seq.then(function () {
+            return new Promise(function (res, rej) {
+              gif.on("progress", function (p) { prog(0.5 + p / 2); });
+              gif.on("finished", res);
+              gif.on("abort", function () { rej(new Error("GIF creation was cancelled.")); });
+              gif.render();
+            });
+          }).then(function (blob) { return { files: [{ name: base(f.name) + ".gif", blob: blob }], pages: idx.length }; });
+        });
+      }
+    },
+    "gif-to-pdf": {
+      accept: "image/gif,.gif", btn: "Create PDF",
+      options: [
+        { id: "size", label: "Page size", type: "select", choices: [["fit", "Same as GIF"], ["a4", "A4"], ["letter", "US Letter"]] },
+        { id: "step", label: "Keep every Nth frame", type: "number", value: 1, min: 1, max: 100, hint: "Use 2 or 3 to skip frames on long GIFs." }
+      ],
+      run: function (files, o, prog) {
+        var f = files[0];
+        return Promise.all([needPdfLib(), loadScript("vendor/omggif.js"), readBuf(f)]).then(function (a) {
+          var rd;
+          try { rd = new GifReader(new Uint8Array(a[2])); } catch (e) { throw new Error("“" + f.name + "” is not a valid GIF."); }
+          var w = rd.width, h = rd.height, n = rd.numFrames(), step = Math.max(1, parseInt(o.step, 10) || 1);
+          var buf = new Uint8ClampedArray(w * h * 4), c = document.createElement("canvas"), t = document.createElement("canvas");
+          c.width = t.width = w; c.height = t.height = h;
+          var cx = c.getContext("2d"), tx = t.getContext("2d");
+          var count = Math.ceil(n / step);
+          if (count > 300) throw new Error("This GIF has " + count + " frames. Raise “Keep every Nth frame” to stay under 300.");
+          return PDFLib.PDFDocument.create().then(function (out) {
+            var seq = Promise.resolve(), made = 0;
+            for (var i = 0; i < n; i++) (function (i) {
+              seq = seq.then(function () {
+                rd.decodeAndBlitFrameRGBA(i, buf);
+                if (i % step) return;
+                cx.putImageData(new ImageData(buf, w, h), 0, 0);
+                tx.fillStyle = "#fff"; tx.fillRect(0, 0, w, h); tx.drawImage(c, 0, 0);
+                return canvasBlob(t, "image/jpeg", 0.92).then(readBuf).then(function (b) { return out.embedJpg(b); }).then(function (im) {
+                  var pw = w, ph = h, m = 0;
+                  if (o.size !== "fit") {
+                    pw = o.size === "a4" ? 595.28 : 612; ph = o.size === "a4" ? 841.89 : 792; m = 24;
+                    if (w > h) { var q = pw; pw = ph; ph = q; }
+                  }
+                  var s = Math.min((pw - 2 * m) / w, (ph - 2 * m) / h);
+                  out.addPage([pw, ph]).drawImage(im, { x: (pw - w * s) / 2, y: (ph - h * s) / 2, width: w * s, height: h * s });
+                  made++; prog((i + 1) / n);
+                });
+              });
+            })(i);
+            return seq.then(function () { return one(base(f.name) + ".pdf", out); }).then(function (r) { return { files: [r], pages: made }; });
+          });
+        });
+      }
+    },    watermark: {
       accept: ".pdf,application/pdf", btn: "Add watermark",
       options: [
         { id: "text", label: "Text", type: "text", value: "CONFIDENTIAL", hint: "Latin characters only." },
@@ -388,7 +472,7 @@
           inp = h("select", {}, d.choices.map(function (c) { return h("option", { value: c[0], text: c[1] }); }));
         } else {
           inp = h("input", { type: d.type });
-          if (d.min !== undefined) inp.min = d.min; if (d.max !== undefined) inp.max = d.max;
+          if (d.min !== undefined) inp.min = d.min; if (d.max !== undefined) inp.max = d.max; if (d.step !== undefined) inp.step = d.step;
         }
         inp.id = "o-" + d.id; inp.value = opts[d.id];
         var redraw = d.id === "mode" || d.id === "size";
@@ -556,6 +640,7 @@
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 })();
+
 
 
 

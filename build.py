@@ -42,7 +42,14 @@ T = [
   "Turn photos and scans (JPG, PNG, WebP, GIF, BMP) into one PDF. Set page size, margins and order.",
   ["Add your images.","Arrange the order and choose page size.","Click “Create PDF”."],
   [("Which image formats work?","JPG, PNG, WebP, GIF and BMP – anything your browser can display.")],"jpg-to-pdf"),
- ("watermark-pdf","Add watermark","💧","#b5532f","Stamp text across every page.","Add a text watermark to a PDF",
+ ("pdf-to-gif","PDF to GIF","🎞","#d49a3a","Turn pages into an animated GIF.","Convert PDF to animated GIF",
+  "Turn the pages of a PDF into an animated GIF slideshow, with your own speed and size. Private and in your browser.",
+  ["Add your PDF.","Choose the speed, width and which pages to include.","Click “Create GIF” and download it."],
+  [("Can I pick which pages go in?","Yes, type ranges like 1-3, 5 or leave it empty for every page."),("Why is my GIF big?","GIFs are large by nature. Lower the width or the page count to shrink it.")],"pdf-to-gif"),
+ ("gif-to-pdf","GIF to PDF","🧩","#8f3e20","Turn GIF frames into PDF pages.","Convert animated GIF to PDF",
+  "Split an animated GIF into its frames and put them into a PDF – one page per frame. Everything stays on your device.",
+  ["Add your GIF.","Choose page size and how many frames to keep.","Click “Create PDF”."],
+  [("Does a PDF animate?","No, a PDF cannot play animation. Each GIF frame becomes its own page.")],"gif-to-pdf"), ("watermark-pdf","Add watermark","💧","#b5532f","Stamp text across every page.","Add a text watermark to a PDF",
   "Add a diagonal or horizontal text watermark with custom size, colour and opacity to every page.",
   ["Add your PDF.","Type the text and style it.","Download the watermarked PDF."],
   [("Can I use any characters?","The built-in font supports Latin characters.")],"watermark"),
@@ -105,12 +112,14 @@ IC = {
  "compress":'<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',
  "pdf-to-jpg":'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/>',
  "jpg-to-pdf":'<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M12 12v6M9 15h6"/>',
+ "pdf-to-gif":'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 10h-1.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H7v-1.5H6M10 10v4M13 14v-4h2.5M13 12h2"/>',
+ "gif-to-pdf":'<rect x="3" y="5" width="12" height="10" rx="1.5"/><path d="M8 19h10a1 1 0 0 0 1-1V9M21 17V8"/>',
  "watermark":'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
  "page-numbers":'<path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/>',
  "pdf-to-text":'<path d="M4 6h16M4 12h16M4 18h10"/>',
 }
 def svg(k): return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">{IC[k]}</svg>'
-LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
+LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","pdf-to-gif":"Pdf2Gif","gif-to-pdf":"Gif2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
 body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
 <main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
@@ -152,7 +161,7 @@ open(os.path.join(ROOT,"sitemap.xml"),"w").write('<?xml version="1.0" encoding="
 open(os.path.join(ROOT,"robots.txt"),"w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
 open(os.path.join(ROOT,"favicon.svg"),"w").write(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))
 json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
-pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js"]
+pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js","vendor/gif.js","vendor/gif.worker.js","vendor/omggif.js"]
 ver = str(int(max(os.path.getmtime(os.path.join(ROOT,p)) for p in pre)))
 open(os.path.join(ROOT,"sw.js"),"w").write(f'''const C="pdfpangea-{ver}",A={json.dumps(pre)};
 self.addEventListener("install",e=>{{e.waitUntil(caches.open(C).then(c=>Promise.allSettled(A.map(u=>c.add(u)))).then(()=>self.skipWaiting()))}});
@@ -160,6 +169,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request,{{cache:"no-cache"}}).then(r=>{{if(r.ok){{const k=r.clone();caches.open(C).then(c=>c.put(e.request,k))}}return r}}).catch(()=>caches.match(e.request,{{ignoreSearch:true}})))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 

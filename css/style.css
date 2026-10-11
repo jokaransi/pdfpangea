@@ -111,9 +111,9 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 .rail a:hover{background:var(--paper)}
 .rail a.active{color:#fff;background:var(--terra);box-shadow:0 2px 0 var(--terra-d)}
 .work{flex:1;min-width:0;max-width:860px;margin:0 auto;padding:.8rem 1.2rem 1.5rem}
-.titlebar{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;border-bottom:1px solid var(--sand);padding-bottom:.4rem}
+.titlebar{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3rem;border-bottom:1px solid var(--sand);padding-bottom:.4rem}
 .titlebar h1{font-size:1.35rem;margin:0}
-.titlebar p{margin:0;color:var(--brown-l);font-size:1rem;flex:1 1 300px;line-height:1.3}
+.titlebar p{margin:0;color:var(--brown-l);font-size:1.05rem;max-width:640px;line-height:1.35}
 .work .panel{margin:.8rem 0}
 .work .drop{padding:3rem 1rem}
 .statusbar{height:28px;display:flex;gap:1.5rem;align-items:center;padding:0 .8rem;background:var(--sand);border-top:1px solid var(--sand-d);font-size:.95rem;color:var(--brown-l);position:sticky;bottom:0;z-index:10}
@@ -161,4 +161,5 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 
 header.site .bar{position:relative}.chip.dn{position:absolute;left:50%;transform:translateX(-50%);font-weight:600}
 @media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
+
 
