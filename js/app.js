@@ -77,7 +77,7 @@
     return doc.save().then(function (bytes) { return { name: name, blob: pdfBlob(bytes) }; });
   }
 
-  var RANGE_HINT = "Example: 1-3, 5, 8-12 (pages 1 to 3, page 5, pages 8 to 12). Leave empty for all pages.";
+  var RANGE_HINT = "Example: 1-3, 5, 8-12 (pages 1 to 3, page 5, pages 8 to 12).";
   var TOOLS = {
     merge: {
       accept: ".pdf,application/pdf", multiple: true, ordered: true, min: 2, btn: "Merge PDFs",
@@ -151,7 +151,7 @@
       accept: ".pdf,application/pdf", btn: "Rotate PDF",
       options: [
         { id: "angle", label: "Rotate", type: "select", choices: [["90", "90° clockwise"], ["180", "180°"], ["270", "90° counter-clockwise"]] },
-        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT }
+        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT + " Leave empty for all pages." }
       ],
       run: function (files, o) {
         return loadDoc(files[0]).then(function (d) {
@@ -270,7 +270,7 @@
       options: [
         { id: "width", label: "Width (px)", type: "number", value: 480, min: 100, max: 1200 },
         { id: "delay", label: "Seconds per page", type: "number", value: 1, min: 0.1, max: 30, step: 0.1 },
-        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT },
+        { id: "pages", label: "Pages", type: "text", value: "", hint: RANGE_HINT + " Leave empty for all pages." },
         { id: "quality", label: "Quality", type: "select", value: "10", choices: [["20", "Smaller file"], ["10", "Balanced"], ["1", "Best colours (slow)"]] }
       ],
       run: function (files, o, prog) {
