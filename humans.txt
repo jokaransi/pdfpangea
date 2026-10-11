@@ -1,0 +1,3 @@
+Site: pdf pangea
+Author: Joshua Karan Singh
+Made in Münster, Germany

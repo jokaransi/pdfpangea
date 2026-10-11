@@ -87,8 +87,17 @@ def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
     return f'''<footer class="site"><div class="wrap"><div><strong>{NAME}</strong><br>Free PDF tools that run on your device.</div><div>{links}<a href="privacy.html">Privacy</a><a href="impressum.html">Impressum</a><a href="support.html">Support</a><a href="#" data-cookie-settings>Cookie settings</a></div></div></footer>'''
 
-def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bcls=""):
+TODAY = __import__("datetime").date.today().isoformat()
+def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bcls="", robots="index,follow", kw=""):
     url = f"{SITE_URL}/{'' if fn=='index.html' else fn}"
+    img = f"{SITE_URL}/og.png"
+    seo = (f'<meta name="robots" content="{robots},max-image-preview:large,max-snippet:-1,max-video-preview:-1">'
+           f'<meta name="author" content="Joshua Karan Singh"><meta name="application-name" content="{NAME}">'
+           + (f'<meta name="keywords" content="{e(kw)}">' if kw else "") +
+           f'<link rel="alternate" hreflang="en" href="{url}"><link rel="alternate" hreflang="x-default" href="{url}">'
+           f'<meta property="og:locale" content="en_US"><meta property="og:image" content="{img}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="{NAME} – free private PDF tools in your browser">'
+           f'<meta name="twitter:image" content="{img}"><meta name="twitter:title" content="{e(title)}"><meta name="twitter:description" content="{e(desc)}">'
+           '<link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png" type="image/png" sizes="192x192"><meta name="format-detection" content="telephone=no">')
     ldj = "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in ld)
     sc = "".join(f'<script src="{s}" defer></script>' for s in scripts)
     out = f'''<!doctype html>
@@ -96,14 +105,69 @@ def page(fn, title, desc, body, ld, scripts=("js/donate.js",), extra_head="", bc
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}"><meta name="theme-color" content="#b5532f">
 <meta property="og:type" content="website"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url}"><meta property="og:site_name" content="{NAME}">
-<meta name="twitter:card" content="summary"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
+<meta name="twitter:card" content="summary_large_image">{seo}<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/ebgaramond-latin-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/style.css">{extra_head}{ldj}</head><body class="{bcls}">
 {header()}{body}{footer()}{sc}</body></html>'''
     open(os.path.join(ROOT, fn), "w", encoding="utf-8").write(out)
 
 pages = ["index.html"]
-org = {"@context":"https://schema.org","@type":"Organization","name":NAME,"url":SITE_URL}
+org = {"@context":"https://schema.org","@type":"Organization","@id":SITE_URL+"/#org","name":NAME,"url":SITE_URL+"/","logo":{"@type":"ImageObject","url":SITE_URL+"/icon-512.png","width":512,"height":512},"email":"pdfpangea@gmail.com","founder":{"@type":"Person","name":"Joshua Karan Singh"},"address":{"@type":"PostalAddress","addressLocality":"Münster","postalCode":"48155","addressCountry":"DE"}}
+SITE_KW = "pdf tools, merge pdf, split pdf, compress pdf, pdf to jpg, jpg to pdf, sign pdf, free pdf editor, offline pdf tools, private pdf tools, no upload"
+
+EXTRA = {
+"merge-pdf": ("Merge PDF online for free: combine PDF files into one document in seconds. No upload, no sign-up, no watermark – runs in your browser.", "merge pdf, combine pdf, join pdf files, pdf merger, merge pdf offline",
+  ["Need to merge PDF files without emailing them to a stranger's server? pdf pangea joins invoices, scans, contracts and chapters into one PDF right on your device. Reorder the files by drag and drop or with the arrow buttons and the merged document keeps all pages, links and quality.",
+   "Because the PDF merger works locally, it is as fast as your computer and works even when you are offline. There is no file size cap, no queue and no account."],
+  [("How do I combine PDF files into one?","Add your PDFs, arrange them in the order you want and press “Merge PDFs”. The combined file downloads instantly."),("Does merging reduce quality?","No. Pages are copied as they are, so text, images and fonts stay identical.")]),
+"compress-pdf": ("Compress PDF online: shrink PDF file size with your own DPI and quality, and see the estimated size before you start. Private, free, no upload.", "compress pdf, reduce pdf size, shrink pdf, pdf compressor, make pdf smaller, compress pdf offline",
+  ["Too big to email? The PDF compressor lets you pick the exact resolution (DPI) and image quality and shows an estimated output size before you compress. Re-rendering pages as JPEG gives the smallest files; the structure-only mode keeps text selectable.",
+   "Everything happens in your browser, so confidential scans and contracts are never uploaded. If the result would not be smaller, your original is kept."],
+  [("How can I reduce PDF size without losing quality?","Use a higher DPI (150–200) and quality around 70–80%. Lower both for the smallest possible file."),("Is the file size estimate accurate?","It is based on rendering sample pages with your settings and is usually within about 20% of the real result.")]),
+"pdf-to-jpg": ("Convert PDF to JPG or PNG online for free. Choose 96–300 dpi, download every page as an image or as one ZIP. No upload – 100% in your browser.", "pdf to jpg, pdf to png, convert pdf to image, pdf to jpeg, pdf to picture, extract images from pdf",
+  ["Turn every page of a PDF into a sharp JPG or PNG. Pick the resolution from screen quality (96 dpi) up to print quality (300 dpi) and download the pages individually or all together in a ZIP file.",
+   "Conversion is done locally with open-source PDF rendering, so your documents never leave your computer or phone."],
+  [("Which resolution should I choose?","96 dpi for screens and chat apps, 150 dpi for general use, 300 dpi for printing."),("JPG or PNG?","JPG gives smaller files for photos and scans; PNG is lossless and best for text and graphics.")]),
+"jpg-to-pdf": ("Convert JPG, PNG and other images to PDF online for free. Combine photos into one PDF in your browser – no upload, no sign-up, no watermark.", "jpg to pdf, png to pdf, image to pdf, photo to pdf, convert pictures to pdf, scan to pdf",
+  ["Combine photos, scans and screenshots into a single PDF. Choose page size and margin, arrange the pictures in order and download the finished document.",
+   "Images are converted on your device, which makes this image-to-PDF converter ideal for ID copies, receipts and other private documents."],
+  [("Which image formats are supported?","JPG/JPEG and PNG directly; other formats your browser can display (such as WebP) are converted automatically."),("Can I put several images in one PDF?","Yes. Add as many as you like and set their order before converting.")]),
+"split-pdf": ("Split PDF online for free: cut a PDF into separate files by page ranges, every N pages or one file per page. Private, in your browser, no upload.", "split pdf, divide pdf, separate pdf pages, pdf splitter, split pdf by page range, cut pdf",
+  ["Break a large PDF into smaller documents. Split by custom page ranges such as 1-3, 5, 8-10, every N pages, or extract each page as its own file. Multiple results are bundled into a ZIP.",
+   "The splitter runs locally, so even sensitive PDFs stay on your device."],
+  [("How do I split a PDF by page range?","Choose “Custom ranges” and enter ranges like 1-3, 5, 8-10. Each range becomes its own PDF."),("Can I get every page as a separate PDF?","Yes, choose “Every page”. You receive a ZIP with one PDF per page.")]),
+"rotate-pdf": ("Rotate PDF pages online for free: turn all or selected pages 90°, 180° or 270° and save permanently. No upload – runs in your browser.", "rotate pdf, rotate pdf pages, turn pdf, flip pdf page, fix pdf orientation",
+  ["Fix sideways scans by rotating the whole PDF or only chosen pages by 90°, 180° or 270°. The new orientation is saved permanently in the file."],
+  [("Can I rotate only some pages?","Yes. Enter the page numbers or ranges, or leave the field empty to rotate every page."),("Is the rotation permanent?","Yes, the downloaded PDF opens with the new orientation in any viewer.")]),
+"remove-pages": ("Remove pages from a PDF online for free. Delete unwanted pages by number or range in seconds – private, no upload, runs in your browser.", "remove pages from pdf, delete pdf pages, delete pages pdf, cut pages out of pdf",
+  ["Delete blank, duplicate or confidential pages from a PDF. Type the page numbers or ranges to remove and download the cleaned document – everything stays on your device."],
+  [("How do I delete pages from a PDF?","Enter the pages to remove, for example 2, 4-6, and press the button. The rest of the document is kept unchanged.")]),
+"extract-pages": ("Extract pages from a PDF online for free: keep only the pages you need as a new PDF. Private, no upload, works in your browser.", "extract pages from pdf, save selected pdf pages, pdf page extractor, select pages pdf",
+  ["Pull a few pages out of a long document and save them as a new PDF. Great for sending only the relevant part of a contract, report or book chapter."],
+  [("What is the difference between extract and split?","Extract creates one new PDF from the selected pages; split cuts the document into several files.")]),
+"organize-pdf": ("Organize PDF online for free: reorder, rotate and delete pages visually with thumbnails. No upload – everything happens in your browser.", "organize pdf, reorder pdf pages, rearrange pdf, pdf page organizer, move pdf pages",
+  ["See every page as a thumbnail, drag pages into a new order, rotate them or mark them for deletion, then save the result as a new PDF in one step."],
+  [("How do I rearrange pages in a PDF?","Drag a page thumbnail onto its new position, use ⟳ to rotate and ✕ to delete, then save.")]),
+"sign-pdf": ("Sign PDF online for free: draw your signature with mouse, finger or stylus and place it on any pages. No upload, no account – private, in your browser.", "sign pdf, e-sign pdf, add signature to pdf, draw signature pdf, sign pdf online free, sign pdf without upload",
+  ["Draw your signature with a mouse, finger or stylus, choose the pages and size, and stamp it onto the PDF. The signature image is embedded locally – neither your document nor your signature is ever sent anywhere.",
+   "This is a visual signature (an image placed on the page), not a certificate-based qualified electronic signature."],
+  [("Is my signature stored anywhere?","No. It only exists in your browser until you close or reload the page."),("Is this a legally binding qualified signature?","It is a simple visual signature. Contracts that legally require a qualified electronic signature need a certified signing service.")]),
+"watermark-pdf": ("Add a watermark to PDF online for free: stamp custom text with size, colour and opacity on every page. Private, in your browser, no upload.", "watermark pdf, add watermark to pdf, pdf stamp, text watermark pdf, confidential watermark",
+  ["Mark documents as CONFIDENTIAL, DRAFT or with your name. Choose text, colour, size and opacity and apply it diagonally across every page."],
+  [("Can I change the watermark colour and opacity?","Yes – pick any colour and set how transparent the text should be.")]),
+"add-page-numbers": ("Add page numbers to PDF online for free: choose position, format and starting number. No upload, no sign-up – runs in your browser.", "add page numbers to pdf, pdf page numbering, number pdf pages, pdf pagination",
+  ["Number the pages of any PDF. Select the position, the number format and the first number, and download the numbered document immediately."],
+  [("Can I start numbering from a different number?","Yes, set any starting number, for example to continue a longer document.")]),
+"pdf-to-text": ("Convert PDF to text online for free: extract all readable text from a PDF as a .txt file. Private, in your browser, no upload.", "pdf to text, extract text from pdf, pdf to txt, copy text from pdf",
+  ["Extract the text of a PDF into a plain .txt file you can copy, search or edit. Works locally; scanned PDFs without a text layer contain no extractable text."],
+  [("Why is my extracted text empty?","The PDF is probably a scan made of images. Only PDFs with real text can be extracted.")]),
+"pdf-to-gif": ("Convert PDF to animated GIF online for free: turn pages into a looping GIF with your own speed and size. No upload, runs in your browser.", "pdf to gif, pdf to animated gif, convert pdf slides to gif, pdf animation",
+  ["Turn the pages of a PDF – slides, comics or storyboards – into an animated GIF. Control the seconds per page, width and quality and download the result."],
+  [("How do I make the GIF smaller?","Reduce the width or the number of pages, or choose “Smaller file” quality.")]),
+"gif-to-pdf": ("Convert GIF to PDF online for free: put GIF images or animation frames into a PDF. Private, no upload, runs in your browser.", "gif to pdf, convert gif to pdf, gif frames to pdf, animated gif to pdf",
+  ["Convert GIF files into a PDF document. Every frame of an animated GIF becomes its own page, and you can keep just every Nth frame for long animations."],
+  [("What happens to animated GIFs?","Every frame becomes a page. Use “Keep every Nth frame” to skip frames on long GIFs.")]),
+}
 cards = "".join(f'<a class="card" href="{s}.html" style="--c:{c}"><div class="ico">{i}</div><h3>{t}</h3><p>{d}</p></a>' for s,t,i,c,d,*_ in T)
 feat = '''<section class="features"><div><h3>🔒 Private by design</h3><p>Files are processed inside your browser. Nothing is uploaded, stored or seen by anyone else.</p></div>
 <div><h3>⚡ Fast &amp; light</h3><p>Small tools load only when needed, then are cached so the site keeps working offline.</p></div>
@@ -132,32 +196,45 @@ IC["home"] = '<path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-6h4v6"/>'
 LBL["home"] = "Home"
 home_cards = "".join(f'<a class="card" href="{t[0]}.html" data-tool="{t[9]}" style="--c:{t[3]}"><div class="ico">{svg(t[9])}</div><h3>{t[1]}</h3><p>{t[4]}</p></a>' for t in T)
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
+HOME_FAQ = [("Are my PDF files uploaded to a server?","No. All tools run inside your browser, so your files never leave your device."),
+ ("Is pdf pangea really free?","Yes. There is no sign-up, no watermark and no file limit. An optional tip starting at €1 plus 1 cent per processed page supports the project."),
+ ("Does it work offline?","Yes. After your first visit the tools are cached and keep working without an internet connection."),
+ ("Which PDF tools are available?","Merge, split, compress, rotate, organize, sign, watermark, add page numbers, remove or extract pages, PDF to JPG/PNG, JPG to PDF, PDF to text, PDF to GIF and GIF to PDF.")]
 body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
 <main class="work"><section id="home"><div class="titlebar"><h1>Free PDF tools that never leave your device</h1><p>Merge, compress, convert and edit PDFs right in your browser. Nothing is uploaded, nothing needs signing up. Most popular tools first.</p></div><div class="cards">{home_cards}</div>{feat}</section>
 <section id="toolview" hidden><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="{T[0][9]}"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></section></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
 <div class="statusbar"><div class="ticker" aria-label="Fuck the cloud. Your PDFs stay private. Files never leave this device."><div class="tk"><span>☁️ Fuck the cloud. Your PDFs stay private.</span><span>🔒 Privacy? Damn right.</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>☁️ Fuck the cloud. Your PDFs stay private.</span><span>🔒 Privacy? Damn right.</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span></div></div></div>
 <div class="wrap"><section class="prose alltools"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
-<section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p></section></div>'''
-page("index.html", f"{NAME} – Free private PDF tools: merge, split, compress, convert",
+<section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p>
+<h2>Frequently asked questions</h2>{"".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in HOME_FAQ)}</section></div>'''
+page("index.html", f"Free PDF Tools: Merge, Split, Compress – {NAME}",
      "Free PDF tools that run in your browser: merge, split, compress, rotate, convert PDF to JPG and JPG to PDF. No upload, no sign-up, works offline.",
-     body, [org, {"@context":"https://schema.org","@type":"WebSite","name":NAME,"url":SITE_URL+"/"},
-            {"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":i+1,"url":f"{SITE_URL}/{t[0]}.html","name":t[1]} for i,t in enumerate(T)]}], ("js/donate.js","js/app.js"), bcls="shell")
+     body, [org, {"@context":"https://schema.org","@type":"WebSite","@id":SITE_URL+"/#website","name":NAME,"alternateName":["pdfpangea","pdfpangea.com"],"url":SITE_URL+"/","publisher":{"@id":SITE_URL+"/#org"},"inLanguage":"en"},
+            {"@context":"https://schema.org","@type":"WebPage","@id":SITE_URL+"/#webpage","url":SITE_URL+"/","name":f"{NAME} – Free private PDF tools","isPartOf":{"@id":SITE_URL+"/#website"},"about":{"@id":SITE_URL+"/#org"},"dateModified":TODAY,"primaryImageOfPage":{"@type":"ImageObject","url":SITE_URL+"/og.png"}},
+            {"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":i+1,"url":f"{SITE_URL}/{t[0]}.html","name":t[1]} for i,t in enumerate(T)]},
+            {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in HOME_FAQ]}], ("js/donate.js","js/app.js"), bcls="shell", kw=SITE_KW)
 
 for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
     pages.append(slug+".html")
+    X = EXTRA[slug]
+    faqs = list(faqs) + X[3] + [("Is it really free and private?","Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional tip (€1 plus 1 cent per processed page) is only a suggestion."),("Does it work offline?","Yes. After the first visit the tools are cached by your browser and keep working without an internet connection.")]
     related = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T if s != slug)
     st = "".join(f"<li>{x}</li>" for x in steps)
     fq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in faqs)
-    fq += "<details><summary>Is it really free and private?</summary><p>Yes. The tool runs entirely in your browser, so your files are never uploaded. A small optional donation (€1 plus 1 cent per processed page) is only a suggestion.</p></details>"
+    more = "".join(f"<p>{e(p)}</p>" for p in X[2])
     body = f'''<main class="wrap"><section class="tool-head"><div class="crumbs"><a href="index.html">Home</a> › {title}</div><h1>{h1}</h1><p>{intro}</p></section>
 <div id="tool" data-tool="{tool}"><noscript><div class="panel">Please enable JavaScript – the tool runs in your browser.</div></noscript></div>
-<section class="prose"><h2>How to: {title.lower()}</h2><ol>{st}</ol><h2>Questions</h2>{fq}<h2>More PDF tools</h2><div class="tags">{related}</div></section></main>'''
+<section class="prose"><h2>How to: {title.lower()}</h2><ol>{st}</ol><h2>About this {title.lower()} tool</h2>{more}<h2>Questions</h2>{fq}<h2>More PDF tools</h2><div class="tags">{related}</div></section></main>'''
+    u = f"{SITE_URL}/{slug}.html"
     ld = [org,
-      {"@context":"https://schema.org","@type":"SoftwareApplication","name":f"{NAME} – {title}","applicationCategory":"UtilitiesApplication","operatingSystem":"Any (web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":intro,"url":f"{SITE_URL}/{slug}.html"},
+      {"@context":"https://schema.org","@type":"WebSite","@id":SITE_URL+"/#website","name":NAME,"url":SITE_URL+"/","publisher":{"@id":SITE_URL+"/#org"},"inLanguage":"en"},
+      {"@context":"https://schema.org","@type":"WebPage","@id":u+"#webpage","url":u,"name":f"{h1} – {NAME}","description":X[0],"isPartOf":{"@id":SITE_URL+"/#website"},"inLanguage":"en","dateModified":TODAY,"primaryImageOfPage":{"@type":"ImageObject","url":SITE_URL+"/og.png"},"breadcrumb":{"@id":u+"#crumbs"}},
+      {"@context":"https://schema.org","@type":"WebApplication","@id":u+"#app","name":f"{NAME} – {title}","applicationCategory":"UtilitiesApplication","applicationSubCategory":"PDF tools","operatingSystem":"Any (web browser)","browserRequirements":"Requires JavaScript","isAccessibleForFree":True,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":X[0],"url":u,"inLanguage":"en","featureList":[x for x in steps],"keywords":X[1],"publisher":{"@id":SITE_URL+"/#org"}},
+      {"@context":"https://schema.org","@type":"HowTo","name":h1,"description":intro,"totalTime":"PT1M","tool":[{"@type":"HowToTool","name":"Web browser"}],"step":[{"@type":"HowToStep","position":i+1,"name":s.rstrip("."),"text":s} for i,s in enumerate(steps)]},
       {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":q,"acceptedAnswer":{"@type":"Answer","text":a}} for q,a in faqs]},
-      {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL+"/"},{"@type":"ListItem","position":2,"name":title,"item":f"{SITE_URL}/{slug}.html"}]}]
-    page(slug+".html", f"{h1} – {NAME}", intro[:155], body, ld, ("js/donate.js","js/app.js"))
+      {"@context":"https://schema.org","@type":"BreadcrumbList","@id":u+"#crumbs","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":SITE_URL+"/"},{"@type":"ListItem","position":2,"name":title,"item":u}]}]
+    page(slug+".html", f"{h1} – {NAME}", X[0], body, ld, ("js/donate.js","js/app.js"), kw=X[1])
 
 pages += ["privacy.html","support.html","impressum.html"]
 page("impressum.html", f"Impressum – {NAME}", "Impressum und Anbieterkennzeichnung von pdf pangea.",
@@ -185,11 +262,16 @@ page("support.html", f"Support {NAME}", "Everything is free. Optionally support 
  f'''<main class="wrap"><section class="prose"><h1>Support {NAME}</h1><p>All tools are free and always will be. If they saved you time, you can optionally tip €1 plus 1 cent for every page you processed. The counter below is kept in a cookie in your browser.</p>
 <div class="donate" data-donate-box></div></section></main>''', [org], ("js/donate.js",))
 
-today = __import__("datetime").date.today().isoformat()
-open(os.path.join(ROOT,"sitemap.xml"),"w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f'<url><loc>{SITE_URL}/{"" if p=="index.html" else p}</loc><lastmod>{today}</lastmod></url>' for p in pages)+'</urlset>')
-open(os.path.join(ROOT,"robots.txt"),"w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
+def prio(p): return "1.0" if p=="index.html" else ("0.9" if p in ("merge-pdf.html","compress-pdf.html","pdf-to-jpg.html","jpg-to-pdf.html","split-pdf.html") else ("0.3" if p in ("privacy.html","impressum.html","support.html") else "0.8"))
+today = TODAY
+open(os.path.join(ROOT,"sitemap.xml"),"w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'+"".join(f'<url><loc>{SITE_URL}/{"" if p=="index.html" else p}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>{prio(p)}</priority>'+(f'<image:image><image:loc>{SITE_URL}/og.png</image:loc></image:image>' if p not in ("privacy.html","impressum.html","support.html") else "")+'</url>' for p in pages)+'</urlset>')
+open(os.path.join(ROOT,"robots.txt"),"w").write(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n")
+open(os.path.join(ROOT,"llms.txt"),"w",encoding="utf-8").write(f"# {NAME}\n\n> Free PDF tools that run 100% in the browser. Files are never uploaded; works offline. Open-source libraries only.\n\n## Tools\n"+"".join(f"- [{t[1]}]({SITE_URL}/{t[0]}.html): {EXTRA[t[0]][0]}\n" for t in T)+f"\n## Legal\n- [Privacy]({SITE_URL}/privacy.html)\n- [Impressum]({SITE_URL}/impressum.html)\n")
+open(os.path.join(ROOT,"humans.txt"),"w",encoding="utf-8").write("Site: pdf pangea\nAuthor: Joshua Karan Singh\nMade in Münster, Germany\n")
+page("404.html", f"Page not found – {NAME}", "This page does not exist. Browse all free PDF tools.",
+ f'<main class="wrap"><section class="prose"><h1>Page not found</h1><p>That page does not exist. Try one of our tools:</p><div class="tags">{"".join(f"<a href=\'{t[0]}.html\'>{t[1]}</a>" for t in T)}</div><p><a href="/">Back to start</a></p></section></main>', [org], ("js/donate.js",), robots="noindex,follow")
 open(os.path.join(ROOT,"favicon.svg"),"w").write(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))
-json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
+json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","description":"Free PDF tools that run 100% in your browser.","lang":"en","categories":["utilities","productivity"],"icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"},{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
 pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js","vendor/gif.js","vendor/gif.worker.js","vendor/omggif.js"]
 ver = str(int(max(os.path.getmtime(os.path.join(ROOT,p)) for p in pre)))
 open(os.path.join(ROOT,"sw.js"),"w").write(f'''const C="pdfpangea-{ver}",A={json.dumps(pre)};

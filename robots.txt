@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+
 Sitemap: https://pdfpangea.com/sitemap.xml
