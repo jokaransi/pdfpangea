@@ -159,7 +159,8 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 
 @media(max-width:700px){.statusbar span:nth-child(n+2){display:inline-block!important}.statusbar .ticker{width:auto;flex:1}}
 
-header.site .bar{position:relative}.chip.dn{position:absolute;left:50%;transform:translateX(-50%);font-weight:600}
+header.site .bar{position:static}.chip.dn{position:absolute;left:calc(50% + 84px);transform:translateX(-50%);font-weight:600}
+@media(max-width:700px){.chip.dn{left:50%}}
 @media(max-width:700px){.statusbar .ticker{flex:none;width:100%}}
 
 
