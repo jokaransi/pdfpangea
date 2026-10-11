@@ -131,7 +131,7 @@ body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" 
 <main class="work"><section id="home"><div class="titlebar"><h1>Free PDF tools that never leave your device</h1><p>Merge, compress, convert and edit PDFs right in your browser. Nothing is uploaded, nothing needs signing up. Most popular tools first.</p></div><div class="cards">{home_cards}</div>{feat}</section>
 <section id="toolview" hidden><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="{T[0][9]}"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></section></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
-<div class="statusbar"><div class="ticker" aria-label="Files never leave this device. Works offline. Free, optional tip 1 ct per page."><div class="tk"><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>🍪 One cookie, no ads</span><span>🔒 Your files never leave this device</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>🍪 One cookie, no ads</span></div></div></div>
+<div class="statusbar"><div class="ticker" aria-label="Fuck the cloud. Your PDFs stay private. Files never leave this device."><div class="tk"><span>☁️ Fuck the cloud. Your PDFs stay private.</span><span>🔒 Privacy? Damn right.</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span><span>☁️ Fuck the cloud. Your PDFs stay private.</span><span>🔒 Privacy? Damn right.</span><span>📴 Works offline</span><span>🌿 Free · optional tip from €1</span></div></div></div>
 <div class="wrap"><section class="prose alltools"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
 <section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p></section></div>'''
 page("index.html", f"{NAME} – Free private PDF tools: merge, split, compress, convert",
@@ -193,7 +193,6 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request,{{cache:"no-cache"}}).then(r=>{{if(r.ok){{const k=r.clone();caches.open(C).then(c=>c.put(e.request,k))}}return r}}).catch(()=>caches.match(e.request,{{ignoreSearch:true}})))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
-
 
 
 

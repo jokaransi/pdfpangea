@@ -105,7 +105,7 @@
     o.setAttribute("aria-modal", "true");
     o.setAttribute("aria-labelledby", "wt");
     o.innerHTML = '<div class="wbox"><h2 id="wt">Welcome to pdf pangea</h2>' +
-      '<ul><li><b>🔒 Your files never leave this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
+      '<ul><li><b>☁️ Fuck the cloud. Your files stay on this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
       '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
       '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1 ct per page</b> is appreciated – never required.</li></ul>' +
       '<button class="btn" type="button">Got it, let\'s go</button></div>';
@@ -141,5 +141,4 @@
   });
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
-
 
