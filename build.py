@@ -81,7 +81,7 @@ def tool_link(s, cls=""):
     return f'<a {cls} href="{s}.html" data-tool="{t[9]}">{t[2]} {t[1]}</a>'
 def header():
     menus = "".join(f'<div class="menu"><button type="button">{n} ▾</button><div class="dd">{"".join(tool_link(s) for s in items)}</div></div>' for n, items in MENUS)
-    return f'''<header class="site"><div class="bar"><a class="logo" href="index.html">{LOGO}{NAME}</a>
+    return f'''<header class="site"><div class="bar"><a class="logo" href="./">{LOGO}{NAME}</a>
 <a class="chip dn" href="support.html" data-donate-chip>*tips hat* 🎩</a><nav class="main"><a class="hide-s" href="privacy.html">Privacy</a></nav></div></header>'''
 def footer():
     links = "".join(f'<a href="{s}.html">{t}</a>' for s,t,*_ in T[:6])
@@ -225,7 +225,7 @@ for slug,title,ico,col,short,h1,intro,steps,faqs,tool in T:
     st = "".join(f"<li>{x}</li>" for x in steps)
     fq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q,a in faqs)
     more = "".join(f"<p>{e(p)}</p>" for p in X[2])
-    body = f'''<main class="wrap"><section class="tool-head"><div class="crumbs"><a href="index.html">Home</a> › {title}</div><h1>{h1}</h1><p>{intro}</p></section>
+    body = f'''<main class="wrap"><section class="tool-head"><div class="crumbs"><a href="./">Home</a> › {title}</div><h1>{h1}</h1><p>{intro}</p></section>
 <div id="tool" data-tool="{tool}"><noscript><div class="panel">Please enable JavaScript – the tool runs in your browser.</div></noscript></div>
 <section class="prose"><h2>How to: {title.lower()}</h2><ol>{st}</ol><h2>About this {title.lower()} tool</h2>{more}<h2>Questions</h2>{fq}<h2>More PDF tools</h2><div class="tags">{related}</div></section></main>'''
     u = f"{SITE_URL}/{slug}.html"
@@ -274,7 +274,7 @@ page("sign-pdf.html", f"Fill & Sign – {NAME}", "Moved to Fill & Sign.", '<main
 page("404.html", f"Page not found – {NAME}", "This page does not exist. Browse all free PDF tools.",
  f'<main class="wrap"><section class="prose"><h1>Page not found</h1><p>That page does not exist. Try one of our tools:</p><div class="tags">{"".join(f"<a href=\'{t[0]}.html\'>{t[1]}</a>" for t in T)}</div><p><a href="/">Back to start</a></p></section></main>', [org], ("js/donate.js",), robots="noindex,follow")
 open(os.path.join(ROOT,"favicon.svg"),"w").write(LOGO.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))
-json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"index.html","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","description":"Free PDF tools that run 100% in your browser.","lang":"en","categories":["utilities","productivity"],"icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"},{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
+json.dump({"name":NAME,"short_name":"pdf pangea","start_url":"./","display":"standalone","background_color":"#f7f0e4","theme_color":"#b5532f","description":"Free PDF tools that run 100% in your browser.","lang":"en","categories":["utilities","productivity"],"icons":[{"src":"favicon.svg","sizes":"any","type":"image/svg+xml"},{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]},open(os.path.join(ROOT,"manifest.webmanifest"),"w"))
 pre = pages + ["css/style.css","js/app.js","js/donate.js","favicon.svg","manifest.webmanifest","fonts/ebgaramond-latin-400.woff2","fonts/ebgaramond-latin-400i.woff2","fonts/ebgaramond-latin-600.woff2","fonts/fraunces-latin-400.woff2","fonts/fraunces-latin-600.woff2","vendor/pdf-lib.min.js","vendor/pdf.min.js","vendor/pdf.worker.min.js","vendor/jszip.min.js","vendor/gif.js","vendor/gif.worker.js","vendor/omggif.js"]
 ver = str(int(max(os.path.getmtime(os.path.join(ROOT,p)) for p in pre)))
 open(os.path.join(ROOT,"sw.js"),"w").write(f'''const C="pdfpangea-{ver}",A={json.dumps(pre)};
