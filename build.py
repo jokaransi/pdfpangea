@@ -110,7 +110,7 @@ IC = {
  "pdf-to-text":'<path d="M4 6h16M4 12h16M4 18h10"/>',
 }
 def svg(k): return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">{IC[k]}</svg>'
-LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pictures","jpg-to-pdf":"Album","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
+LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"Pdf2Pic","jpg-to-pdf":"Pic2Pdf","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"Text"}
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
 body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
 <main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
@@ -160,6 +160,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(fetch(e.request,{{cache:"no-cache"}}).then(r=>{{if(r.ok){{const k=r.clone();caches.open(C).then(c=>c.put(e.request,k))}}return r}}).catch(()=>caches.match(e.request,{{ignoreSearch:true}})))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 
