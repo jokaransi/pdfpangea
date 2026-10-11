@@ -243,3 +243,4 @@ header.site .logo svg{width:24px;height:24px}
 @media(max-width:700px){.ed-sizel{margin-left:0}.ed-bar .btn{padding:.35rem .55rem}.ed-grip{left:-2px;top:-24px}}.wbox .wcookie{font-size:1.05rem;margin:0 0 1rem;line-height:1.4}
 .wbox .wbtns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
 .wbox .wno{background:none;border:0;padding:.2rem;margin-top:.7rem;font:inherit;font-size:1.05rem;color:var(--muted,#7a6350);text-decoration:underline;cursor:pointer}
+.files li.pgs{display:block;background:var(--paper,#fffaf2)}.files li.pgs .thumbs{margin:.6rem 0 0}.thumbs .more{cursor:pointer}.thumbs .btn.more{justify-self:center}.thumb.ro .tb{display:flex}

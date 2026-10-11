@@ -281,15 +281,17 @@
   var RANGE_HINT = "Example: 1-3, 5, 8-12 (pages 1 to 3, page 5, pages 8 to 12).";
   var TOOLS = {
     merge: {
-      accept: ".pdf,application/pdf", multiple: true, ordered: true, min: 2, btn: "Merge PDFs",
+      accept: ".pdf,application/pdf", multiple: true, ordered: true, min: 2, pagePick: true, btn: "Merge PDFs",
       run: function (files, o, prog) {
         return needPdfLib().then(function () { return PDFLib.PDFDocument.create(); }).then(function (out) {
           var i = 0;
           return files.reduce(function (p, f) {
             return p.then(function () { return loadDoc(f); }).then(function (d) {
-              return out.copyPages(d, d.getPageIndices());
+              var del = f._del || {};
+              return out.copyPages(d, d.getPageIndices().filter(function (k) { return !del[k]; }));
             }).then(function (pages) { pages.forEach(function (pg) { out.addPage(pg); }); prog(++i / files.length); });
           }, Promise.resolve()).then(function () {
+            if (!out.getPageCount()) throw new Error("All pages were left out – keep at least one page.");
             return one("merged.pdf", out).then(function (r) { return { files: [r], pages: out.getPageCount() }; });
           });
         });
@@ -709,11 +711,12 @@
   }
   function imgCell(src, label) { return thumbCell(label, h("img", { src: src, alt: label })); }
   // Renders PDF pages as thumbnails: mode "all" = every page, "first" = page 1 only (label is the file name)
-  function pdfThumbs(grid, file, mode, label, alive) {
+  function pdfThumbs(grid, file, mode, label, alive, from) {
     return pdfJsDoc(file).then(function (pdf) {
-      var n = mode === "first" ? 1 : Math.min(pdf.numPages, MAXTHUMBS), seq = Promise.resolve();
-      Array.apply(null, Array(n)).forEach(function (_, i) {
-        var cv = h("canvas");
+      from = from || 0;
+      var n = mode === "first" ? 1 : Math.min(pdf.numPages - from, MAXTHUMBS), seq = Promise.resolve();
+      Array.apply(null, Array(n)).forEach(function (_, k) {
+        var i = from + k, cv = h("canvas");
         grid.appendChild(thumbCell(mode === "first" ? label : label + (i + 1), cv));
         seq = seq.then(function () { return alive() ? pdf.getPage(i + 1) : null; }).then(function (page) {
           if (!page) return;
@@ -722,14 +725,19 @@
           return page.render({ canvasContext: cv.getContext("2d"), viewport: v }).promise;
         });
       });
-      if (mode !== "first" && pdf.numPages > n) grid.appendChild(h("p", { class: "more", text: "+ " + (pdf.numPages - n) + " more pages not shown" }));
+      var left = pdf.numPages - from - n;
+      if (mode !== "first" && left > 0) {
+        var btn = h("button", { type: "button", class: "btn ghost sm more", text: "+ " + left + " more pages – show " + Math.min(left, MAXTHUMBS) + " more" });
+        btn.onclick = function () { btn.remove(); pdfThumbs(grid, file, mode, label, alive, from + n).catch(function () {}); };
+        grid.appendChild(btn);
+      }
       return seq;
     });
   }
-  function resPreview(grid, files, urls) {
-    var pdfs = files.filter(function (f) { return /\.pdf$/i.test(f.name); }), seq = Promise.resolve(), always = function () { return true; };
-    if (pdfs.length === 1 && files.length === 1) { pdfThumbs(grid, pdfs[0].blob, "all", "Page ", always).catch(function () {}); return; }
-    files.slice(0, MAXTHUMBS).forEach(function (f) {
+  // Result preview for several files: first PDF pages / images, with a button to reveal the rest
+  function filePreviews(grid, files, urls, from) {
+    var seq = Promise.resolve(), always = function () { return true; };
+    files.slice(from, from + MAXTHUMBS).forEach(function (f) {
       if (/\.pdf$/i.test(f.name)) seq = seq.then(function () { return pdfThumbs(grid, f.blob, "first", f.name, always); }).catch(function () {});
       else if (/\.(png|jpe?g|gif)$/i.test(f.name)) { var u = URL.createObjectURL(f.blob); urls.push(u); grid.appendChild(imgCell(u, f.name)); }
       else if (/\.txt$/i.test(f.name)) {
@@ -737,7 +745,48 @@
         f.blob.text().then(function (t) { pre.textContent = t.slice(0, 2500) + (t.length > 2500 ? "\n…" : ""); });
       }
     });
-    if (files.length > MAXTHUMBS) grid.appendChild(h("p", { class: "more", text: "+ " + (files.length - MAXTHUMBS) + " more files not shown" }));
+    var left = files.length - from - MAXTHUMBS;
+    if (left > 0) {
+      var btn = h("button", { type: "button", class: "btn ghost sm more", text: "+ " + left + " more files – show " + Math.min(left, MAXTHUMBS) + " more" });
+      btn.onclick = function () { btn.remove(); filePreviews(grid, files, urls, from + MAXTHUMBS); };
+      grid.appendChild(btn);
+    }
+  }
+  function resPreview(grid, files, urls) {
+    var pdfs = files.filter(function (f) { return /\.pdf$/i.test(f.name); }), always = function () { return true; };
+    if (pdfs.length === 1 && files.length === 1) { pdfThumbs(grid, pdfs[0].blob, "all", "Page ", always).catch(function () {}); return; }
+    filePreviews(grid, files, urls, 0);
+  }
+  // Expandable page view for the merge list: click ✕ on a page to leave it out of the merged file
+  function mergePages(host, f) {
+    var del = f._del = f._del || {}, info = h("small", { text: "Loading pages…" }), grid = h("div", { class: "thumbs" });
+    host.appendChild(info); host.appendChild(grid);
+    function count(total) {
+      var gone = Object.keys(del).filter(function (k) { return del[k]; }).length;
+      info.textContent = (total - gone) + " of " + total + " pages will be merged. Click ✕ to leave a page out.";
+    }
+    pdfJsDoc(f).then(function (pdf) {
+      var total = pdf.numPages; count(total);
+      (function batch(from) {
+        var n = Math.min(total - from, MAXTHUMBS), seq = Promise.resolve();
+        for (var k = 0; k < n; k++) (function (i) {
+          var cv = h("canvas"), cell = h("div", { class: "thumb ro" + (del[i] ? " del" : "") }, [h("div", { class: "pic" }, [cv]), h("span", { text: "Page " + (i + 1) })]);
+          cell.appendChild(h("div", { class: "tb" }, [h("button", { class: "btn ghost sm", type: "button", text: "✕", title: "Leave out / put back", onclick: function () { del[i] = !del[i]; cell.classList.toggle("del", !!del[i]); count(total); } })]));
+          grid.appendChild(cell);
+          seq = seq.then(function () { return pdf.getPage(i + 1); }).then(function (page) {
+            var v0 = page.getViewport({ scale: 1 }), v = page.getViewport({ scale: 150 / Math.max(v0.width, v0.height) });
+            cv.width = v.width; cv.height = v.height;
+            return page.render({ canvasContext: cv.getContext("2d"), viewport: v }).promise;
+          });
+        })(from + k);
+        var left = total - from - n;
+        if (left > 0) {
+          var btn = h("button", { type: "button", class: "btn ghost sm more", text: "+ " + left + " more pages – show " + Math.min(left, MAXTHUMBS) + " more" });
+          btn.onclick = function () { btn.remove(); batch(from + n); };
+          grid.appendChild(btn);
+        }
+      })(0);
+    }).catch(function () { info.textContent = "Couldn't read this file's pages."; });
   }
 
   var FIT_LADDER = [[150, 0.8], [120, 0.75], [120, 0.6], [96, 0.6], [96, 0.5], [72, 0.5], [72, 0.4], [60, 0.4], [50, 0.3], [40, 0.25]];
@@ -892,8 +941,10 @@
           li.ondragover = function (e) { e.preventDefault(); };
           li.ondrop = function (e) { e.preventDefault(); e.stopPropagation(); var from = +e.dataTransfer.getData("text/plain"); if (!isNaN(from)) mv(from, i); };
         }
+        if (T.pagePick) li.appendChild(h("button", { class: "btn ghost sm", type: "button", text: f._open ? "Pages ▴" : "Pages ▾", title: "Show pages and leave out the ones you don't want", onclick: function () { f._open = !f._open; drawList(); } }));
         li.appendChild(h("button", { class: "btn ghost sm", title: "Remove", text: "✕", onclick: function () { files.splice(i, 1); fileChange(); } }));
         list.appendChild(li);
+        if (T.pagePick && f._open) { var pl = h("li", { class: "pgs" }); list.appendChild(pl); mergePages(pl, f); }
       });
     }
     function mv(a, b) { if (b < 0 || b >= files.length) return; files.splice(b, 0, files.splice(a, 1)[0]); drawList(); }
