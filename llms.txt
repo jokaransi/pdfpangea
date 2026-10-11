@@ -12,7 +12,7 @@
 - [Remove pages](https://pdfpangea.com/remove-pages.html): Remove pages from a PDF online for free. Delete unwanted pages by number or range in seconds – private, no upload, runs in your browser.
 - [Extract pages](https://pdfpangea.com/extract-pages.html): Extract pages from a PDF online for free: keep only the pages you need as a new PDF. Private, no upload, works in your browser.
 - [Organize PDF](https://pdfpangea.com/organize-pdf.html): Organize PDF online for free: reorder, rotate and delete pages visually with thumbnails. No upload – everything happens in your browser.
-- [Sign PDF](https://pdfpangea.com/sign-pdf.html): Sign PDF online for free: draw your signature with mouse, finger or stylus and place it on any pages. No upload, no account – private, in your browser.
+- [Fill & Sign](https://pdfpangea.com/fill-sign-pdf.html): Fill & sign PDF online for free: type into forms, tick boxes, add dates and draw your signature anywhere on the page. No upload, no account – private, in your browser.
 - [Add watermark](https://pdfpangea.com/watermark-pdf.html): Add a watermark to PDF online for free: stamp custom text with size, colour and opacity on every page. Private, in your browser, no upload.
 - [Page numbers](https://pdfpangea.com/add-page-numbers.html): Add page numbers to PDF online for free: choose position, format and starting number. No upload, no sign-up – runs in your browser.
 - [PDF to text](https://pdfpangea.com/pdf-to-text.html): Convert PDF to text online for free: extract all readable text from a PDF as a .txt file. Private, in your browser, no upload.

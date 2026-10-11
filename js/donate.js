@@ -37,14 +37,21 @@
     document.body.appendChild(t); setTimeout(function () { t.remove(); }, 9000);
   }
   function openKofi(s) {
-    var amount = tip(s);
+    var amount = tip(s), pages = s.pending;
     try { if (navigator.clipboard) navigator.clipboard.writeText(String(amount)).catch(function () {}); } catch (e) {}
-    toast("Opening Ko-fi… we'd recommend a " + amount + "€ tip – but it's entirely up to you. Thank you! 🎩");
     // open the tab right away (popup blockers), then send it to Ko-fi after 2 seconds
     var w = null;
     try { w = window.open("", "_blank"); } catch (e) {}
-    if (w) { try { w.document.write("<title>Opening Ko-fi…</title><body style='font:20px Georgia;background:#f7f0e4;color:#30251f;display:grid;place-items:center;height:100vh;margin:0'>Opening Ko-fi… 🎩"); } catch (e) {} }
-    setTimeout(function () { if (w && !w.closed) w.location.href = CONFIG.kofiUrl; else window.location.href = CONFIG.kofiUrl; }, 2000);
+    if (w) {
+      try {
+        w.document.write('<!doctype html><meta charset="utf-8"><title>Opening Ko-fi…</title><body style="font:22px Georgia,serif;background:#f7f0e4;color:#30251f;display:grid;place-items:center;height:100vh;margin:0;text-align:center"><div style="max-width:30rem;padding:1.5rem"><div style="font-size:3rem">🎩</div><h1 style="font-weight:600;margin:.4rem 0">Opening Ko-fi…</h1><p>We\'d recommend a <b>' + amount + '€</b> tip' + (pages ? ' for the ' + pages + ' page' + (pages === 1 ? '' : 's') + ' you processed' : '') + ' (1€ base + 1€ per full 100 pages) – but it\'s entirely up to you.</p><p style="opacity:.7">Thank you! ♥</p></div></body>');
+        w.document.close();
+      } catch (e) {}
+      setTimeout(function () { if (!w.closed) w.location.href = CONFIG.kofiUrl; }, 2000);
+    } else {
+      toast("Opening Ko-fi… we'd recommend a " + amount + "€ tip – but it's entirely up to you. Thank you! 🎩");
+      setTimeout(function () { window.location.href = CONFIG.kofiUrl; }, 2000);
+    }
   }
   var Donate = {
     state: readCookie(),
@@ -59,6 +66,7 @@
       this.state = readCookie();
       this.state.paid += tip(this.state) * 100;
       this.state.pending = 0;
+      this.state.pages = 0;
       save(this.state);
       this.refresh();
     },
@@ -79,8 +87,8 @@
       h.textContent = "Enjoying this tool?";
       var p = document.createElement("p");
       p.textContent = s.pending > 0
-        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + tipLabel(s) + " (1€ per 100 pages processed). It is entirely optional – everything stays free."
-        : "Everything is free and runs on your device. If it helped, a small tip of 1€ (plus 1€ per 100 pages) keeps it that way – entirely optional.";
+        ? "You have processed " + s.pages + " page" + (s.pages === 1 ? "" : "s") + ". A fair tip would be " + tipLabel(s) + " (1€ base + 1€ per full 100 pages). It is entirely optional – everything stays free."
+        : "Everything is free and runs on your device. If it helped, a small tip of 1€ (plus 1€ per full 100 pages) keeps it that way – entirely optional.";
       var row = document.createElement("div");
       row.className = "row";
       var d = document.createElement("button");
@@ -152,4 +160,3 @@
   });
   document.addEventListener("DOMContentLoaded", function () { Donate.refresh(); });
 })();
-
