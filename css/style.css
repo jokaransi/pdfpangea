@@ -133,3 +133,13 @@ body.shell{display:flex;flex-direction:column;min-height:100vh}
 
 .rail .ri{display:grid;place-items:center}.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
+
+.rt{display:none}.rn{display:contents}
+@media(max-width:700px){
+.rail{flex-direction:column;align-items:stretch;overflow:visible;padding:.4rem .5rem;gap:.4rem;top:44px}
+.rt{display:block;width:100%;border:1.5px solid var(--sand-d);background:var(--paper);color:var(--brown);border-radius:10px;padding:.5rem;font:600 1.1rem var(--body);cursor:pointer}
+.rn{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none}.rn::-webkit-scrollbar{display:none}
+.rail.open .rn{flex-wrap:wrap;max-height:50vh;overflow-y:auto}
+.rail.open .rn a{flex:1 0 30%;min-width:0}
+.alltools{display:none}
+}

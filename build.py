@@ -112,11 +112,11 @@ IC = {
 def svg(k): return f'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">{IC[k]}</svg>'
 LBL = {"merge":"Merge","split":"Split","remove-pages":"Remove","extract-pages":"Extract","organize":"Organize","rotate":"Rotate","compress":"Compress","pdf-to-jpg":"ToImage","jpg-to-pdf":"ToPDF","watermark":"Watermark","page-numbers":"Numbers","pdf-to-text":"ToText"}
 rail = "".join(f'<a href="{t[0]}.html" data-tool="{t[9]}" title="{e(t[1])}"><span class="ri">{svg(t[9])}</span><span class="rl">{LBL[t[9]]}</span></a>' for t in T)
-body = f'''<div class="app"><aside class="rail">{rail}</aside>
+body = f'''<div class="app"><aside class="rail" id="rail"><button type="button" class="rt" aria-expanded="false" aria-controls="rn">View all tools ▾</button><nav class="rn" id="rn">{rail}</nav></aside>
 <main class="work"><div class="titlebar"><h1 id="tt">{e(T[0][5])}</h1><p id="ts">{e(T[0][6])}</p></div><div id="tool" data-tool="merge"><noscript><div class="panel">Please enable JavaScript – the tools run in your browser.</div></noscript></div></main></div>
 <script id="meta" type="application/json">{json.dumps(meta)}</script>
 <div class="statusbar"><span>🔒 Files never leave this device</span><span>Works offline</span><span>Free · optional tip 1 ct / page</span></div>
-<div class="wrap"><section class="prose"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
+<div class="wrap"><section class="prose alltools"><h2>All PDF tools</h2><div class="tags">{"".join(f'<a href="{t[0]}.html">{t[1]}</a>' for t in T)}</div></section>
 <section class="prose"><h2>Free online PDF tools without the cloud</h2><p>{NAME} is a collection of PDF tools – merge PDF, split PDF, compress PDF, PDF to JPG, JPG to PDF and more – that run entirely in your web browser. Unlike typical online PDF editors, your files are never sent to a server, so confidential contracts, invoices and personal papers stay private. It is fast, free and even works without an internet connection once loaded.</p></section></div>'''
 page("index.html", f"{NAME} – Free private PDF tools: merge, split, compress, convert",
      "Free PDF tools that run in your browser: merge, split, compress, rotate, convert PDF to JPG and JPG to PDF. No upload, no sign-up, works offline.",
@@ -160,6 +160,7 @@ self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(k=>Promise.
 self.addEventListener("fetch",e=>{{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request,{{ignoreSearch:true}}).then(r=>r||fetch(e.request)))}});
 ''')
 print("built", len(pages), "pages for", SITE_URL)
+
 
 
 

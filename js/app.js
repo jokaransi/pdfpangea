@@ -543,8 +543,11 @@
         var act = document.querySelector(".rail a.active"); if (act && act.scrollIntoView) act.scrollIntoView({ block: "nearest", inline: "center" });
         if (push) history.replaceState(null, "", "#" + meta[k].slug);
       };
+      var rail = $("#rail"), rt = $(".rt");
+      var setOpen = function (v) { rail.classList.toggle("open", v); rt.setAttribute("aria-expanded", v); rt.textContent = v ? "Close ▴" : "View all tools ▾"; };
+      rt.onclick = function () { setOpen(!rail.classList.contains("open")); };
       document.querySelectorAll("a[data-tool]").forEach(function (a) {
-        a.addEventListener("click", function (e) { e.preventDefault(); open(a.dataset.tool, true); if (document.activeElement) document.activeElement.blur(); });
+        a.addEventListener("click", function (e) { e.preventDefault(); open(a.dataset.tool, true); setOpen(false); if (document.activeElement) document.activeElement.blur(); });
       });
       var start = "merge", h = location.hash.slice(1);
       Object.keys(meta).forEach(function (k) { if (meta[k].slug === h) start = k; });
@@ -553,6 +556,7 @@
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 })();
+
 
 
 
