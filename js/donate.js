@@ -127,15 +127,16 @@
       '<ul><li><b>🌬️ Clouds go home! Your files stay on this device.</b> Everything is processed right in your browser – nothing is uploaded.</li>' +
       '<li><b>📴 Works offline</b> once the page has loaded.</li>' +
       '<li><b>🌿 Free to use.</b> If it helps you, an optional tip of <b>1€</b> (+1€ per 100 pages) is appreciated – never required.</li></ul>' +
-      '<button class="btn" type="button">Got it, let\'s go</button></div>';
-    var b = o.querySelector("button");
+      (consent() === null
+        ? '<p class="wcookie">🍪 We’d like to save one small cookie that remembers your optional tip counter. No tracking, no ads, nothing shared. <a href="privacy.html">Details</a></p><div class="wbtns"><button class="btn" type="button" data-c="yes">Accept &amp; go</button><button class="btn ghost" type="button" data-c="no">No cookie, thanks</button></div>'
+        : '<div class="wbtns"><button class="btn" type="button">Got it, let\'s go</button></div>') + '</div>';
     function close() { o.remove(); document.removeEventListener("keydown", esc); }
     function esc(e) { if (e.key === "Escape") close(); }
-    b.onclick = close;
+    o.querySelectorAll("button").forEach(function (x) { x.onclick = function () { var v = x.getAttribute("data-c"); if (v) { setConsent(v); Donate.refresh(); } close(); }; });
     o.addEventListener("click", function (e) { if (e.target === o) close(); });
     document.addEventListener("keydown", esc);
     document.body.appendChild(o);
-    b.focus();
+    o.querySelector("button").focus();
   });  window.Donate = Donate;
   function showConsent() {
     var old = document.querySelector(".cookie-note"); if (old) old.remove();
@@ -153,7 +154,6 @@
   }
   Donate.showConsent = showConsent;
   document.addEventListener("DOMContentLoaded", function () {
-    if (consent() === null) { try { if (!sessionStorage.getItem("pp_cookie_seen")) { sessionStorage.setItem("pp_cookie_seen", "1"); showConsent(); } } catch (e) { showConsent(); } }
     document.querySelectorAll("[data-cookie-settings]").forEach(function (a) {
       a.addEventListener("click", function (e) { e.preventDefault(); showConsent(); });
     });

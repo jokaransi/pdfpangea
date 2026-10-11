@@ -383,62 +383,40 @@
       accept: ".pdf,application/pdf", btn: "Compress PDF",
       options: [
         { id: "level", label: "Method", type: "select", value: "image", choices: [["image", "Re-render pages as images (smallest)"], ["light", "Optimise structure only (text stays selectable)"]] },
-        { id: "dpi", label: "Resolution (DPI)", type: "select", value: "120", show: function (o) { return o.level !== "light"; }, choices: [["72", "72 dpi – screen, smallest"], ["96", "96 dpi"], ["120", "120 dpi"], ["150", "150 dpi – good"], ["200", "200 dpi"], ["300", "300 dpi – print"]] },
-        { id: "quality", label: "Image quality", type: "range", value: "70", min: 10, max: 95, step: 5, unit: "%", show: function (o) { return o.level !== "light"; } }
+        { id: "target", label: "Target file size", type: "select", value: "auto", choices: [["auto", "Automatic"], ["200000", "about 200 KB"], ["500000", "about 500 KB"], ["1000000", "about 1 MB"], ["2000000", "about 2 MB"], ["5000000", "about 5 MB"], ["10000000", "about 10 MB"]] },
+        { id: "dpi", label: "Resolution (DPI)", type: "select", value: "120", show: function (o) { return o.level !== "light" && o.target === "auto"; }, choices: [["72", "72 dpi – screen, smallest"], ["96", "96 dpi"], ["120", "120 dpi"], ["150", "150 dpi – good"], ["200", "200 dpi"], ["300", "300 dpi – print"]] },
+        { id: "quality", label: "Image quality", type: "range", value: "70", min: 10, max: 95, step: 5, unit: "%", show: function (o) { return o.level !== "light" && o.target === "auto"; } }
       ],
       estimate: function (f, o) {
-        if (o.level === "light") return Promise.resolve("Estimated size: typically " + size(f.size * 0.9) + " – " + size(f.size) + " (small gains only)");
-        var dpi = +o.dpi, q = o.quality / 100;
+        var tgt = o.target !== "auto" ? +o.target : 0;
+        if (o.level === "light") {
+          if (tgt) return Promise.resolve("Estimated size: " + size(f.size * 0.9) + " – " + size(f.size) + " with structure only. " + (f.size > tgt ? "Your target is smaller, so pages will be re-rendered as images (text no longer selectable) to reach it." : "Your target is already met."));
+          return Promise.resolve("Estimated size: typically " + size(f.size * 0.9) + " – " + size(f.size) + " (small gains only)");
+        }
         return pdfJsDoc(f).then(function (pdf) {
-          var n = pdf.numPages, idx = [], k = Math.min(3, n), i;
-          for (i = 0; i < k; i++) idx.push(k === 1 ? 1 : 1 + Math.round(i * (n - 1) / (k - 1)));
-          var total = 0, seq = Promise.resolve();
-          idx.forEach(function (p) {
-            seq = seq.then(function () { return pdf.getPage(p); }).then(function (page) {
-              var v = page.getViewport({ scale: dpi / 72 });
-              var c = document.createElement("canvas"); c.width = Math.ceil(v.width); c.height = Math.ceil(v.height);
-              var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-              return page.render({ canvasContext: ctx, viewport: v }).promise.then(function () { return canvasBlob(c, "image/jpeg", q); })
-                .then(function (b) { total += b.size; c.width = c.height = 0; });
-            });
-          });
-          return seq.then(function () {
-            var est = total / idx.length * n + 2000;
+          var step = tgt ? fitTarget(pdf, tgt) : Promise.resolve({ dpi: +o.dpi, q: o.quality / 100 });
+          return step.then(function (s) { return sampleBytes(pdf, s.dpi, s.q); }).then(function (est) {
             return "Estimated size: ≈ " + size(est * 0.85) + " – " + size(est * 1.15) + " (original " + size(f.size) + (est >= f.size ? " – may not get smaller" : ", about −" + Math.round(100 - est / f.size * 100) + "%") + ")";
           });
         });
       },
       run: function (files, o, prog) {
-        var f = files[0];
+        var f = files[0], tgt = o.target !== "auto" ? +o.target : 0;
+        function image() {
+          return pdfJsDoc(f).then(function (pdf) {
+            var step = tgt ? fitTarget(pdf, tgt) : Promise.resolve({ dpi: +o.dpi, q: o.quality / 100 });
+            return step.then(function (s) { return renderCompressed(f, pdf, s.dpi, s.q, prog); });
+          });
+        }
         if (o.level === "light") {
           return loadDoc(f).then(function (d) { return d.save({ useObjectStreams: true }); }).then(function (bytes) {
+            if (tgt && bytes.length > tgt) return image();
             return finishCompress(f, pdfBlob(bytes), 0);
           });
         }
-        var dpi = +o.dpi, q = o.quality / 100;
-        return Promise.all([pdfJsDoc(f), needPdfLib()]).then(function (a) {
-          var pdf = a[0], out, n = pdf.numPages;
-          return PDFLib.PDFDocument.create().then(function (d) {
-            out = d;
-            var seq = Promise.resolve();
-            for (var i = 1; i <= n; i++) (function (i) {
-              seq = seq.then(function () { return pdf.getPage(i); }).then(function (page) {
-                var v1 = page.getViewport({ scale: 1 }), v = page.getViewport({ scale: dpi / 72 });
-                var c = document.createElement("canvas"); c.width = Math.ceil(v.width); c.height = Math.ceil(v.height);
-                var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-                return page.render({ canvasContext: ctx, viewport: v }).promise.then(function () { return canvasBlob(c, "image/jpeg", q); })
-                  .then(readBuf).then(function (b) { return out.embedJpg(b); }).then(function (img) {
-                    out.addPage([v1.width, v1.height]).drawImage(img, { x: 0, y: 0, width: v1.width, height: v1.height });
-                    c.width = c.height = 0; prog(i / n);
-                  });
-              });
-            })(i);
-            return seq;
-          }).then(function () { return out.save(); }).then(function (bytes) { return finishCompress(f, pdfBlob(bytes), n); });
-        });
+        return image();
       }
-    },
-    "pdf-to-jpg": {
+    },    "pdf-to-jpg": {
       accept: ".pdf,application/pdf", btn: "Convert to images",
       options: [
         { id: "fmt", label: "Format", type: "select", choices: [["jpeg", "JPG"], ["png", "PNG"]] },
@@ -715,7 +693,7 @@
     organize: "Works well up to a few hundred pages; every page is shown as a thumbnail. Password-protected PDFs aren't supported.",
     "fill-sign-pdf": "Visual fill-in and signature only – not a certificate-based qualified electronic signature. Text uses a standard font (basic Latin characters). Password-protected PDFs aren't supported.",
     rotate: "Works well up to a few hundred pages. Rotation is in steps of 90°. Password-protected PDFs aren't supported.",
-    compress: "Re-rendering turns pages into images (text is no longer selectable); structure-only keeps text. The size estimate is approximate. If the result isn't smaller, we keep your original. Password-protected PDFs aren't supported.",
+    compress: "Re-rendering turns pages into images (text is no longer selectable); structure-only keeps text. The size estimate is approximate. If the result isn't smaller, you keep your original. Password-protected PDFs aren't supported.",
     "pdf-to-jpg": "Long PDFs at 300 dpi need a lot of memory – pick a lower quality if your browser slows down. Results are offered as one ZIP.",
     "jpg-to-pdf": "Accepts JPG, PNG, WebP, GIF and BMP. Very large photos use a lot of memory, so convert big batches in parts.",
     "pdf-to-gif": "Up to 200 pages per GIF, 100–1200 px wide. GIFs are limited to 256 colours, so photos look grainier than in the PDF.",
@@ -762,6 +740,54 @@
     if (files.length > MAXTHUMBS) grid.appendChild(h("p", { class: "more", text: "+ " + (files.length - MAXTHUMBS) + " more files not shown" }));
   }
 
+  var FIT_LADDER = [[150, 0.8], [120, 0.75], [120, 0.6], [96, 0.6], [96, 0.5], [72, 0.5], [72, 0.4], [60, 0.4], [50, 0.3], [40, 0.25]];
+  function sampleBytes(pdf, dpi, q) {
+    var n = pdf.numPages, idx = [], k = Math.min(3, n), i, total = 0, seq = Promise.resolve();
+    for (i = 0; i < k; i++) idx.push(k === 1 ? 1 : 1 + Math.round(i * (n - 1) / (k - 1)));
+    idx.forEach(function (p) {
+      seq = seq.then(function () { return pdf.getPage(p); }).then(function (page) {
+        var v = page.getViewport({ scale: dpi / 72 });
+        var c = document.createElement("canvas"); c.width = Math.ceil(v.width); c.height = Math.ceil(v.height);
+        var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        return page.render({ canvasContext: ctx, viewport: v }).promise.then(function () { return canvasBlob(c, "image/jpeg", q); })
+          .then(function (b) { total += b.size; c.width = c.height = 0; });
+      });
+    });
+    return seq.then(function () { return total / idx.length * n + 2000; });
+  }
+  function fitTarget(pdf, target) {
+    var lo = 0, hi = FIT_LADDER.length - 1;
+    function pick() {
+      if (lo >= hi) return Promise.resolve({ dpi: FIT_LADDER[lo][0], q: FIT_LADDER[lo][1] });
+      var mid = (lo + hi) >> 1;
+      return sampleBytes(pdf, FIT_LADDER[mid][0], FIT_LADDER[mid][1]).then(function (est) {
+        if (est <= target) hi = mid; else lo = mid + 1;
+        return pick();
+      });
+    }
+    return pick();
+  }
+  function renderCompressed(f, pdf, dpi, q, prog) {
+    var out, n = pdf.numPages;
+    return needPdfLib().then(function () { return PDFLib.PDFDocument.create(); }).then(function (d) {
+      out = d;
+      var seq = Promise.resolve();
+      for (var i = 1; i <= n; i++) (function (i) {
+        seq = seq.then(function () { return pdf.getPage(i); }).then(function (page) {
+          var v1 = page.getViewport({ scale: 1 }), v = page.getViewport({ scale: dpi / 72 });
+          var c = document.createElement("canvas"); c.width = Math.ceil(v.width); c.height = Math.ceil(v.height);
+          var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+          return page.render({ canvasContext: ctx, viewport: v }).promise.then(function () { return canvasBlob(c, "image/jpeg", q); })
+            .then(readBuf).then(function (b) { return out.embedJpg(b); }).then(function (img) {
+              out.addPage([v1.width, v1.height]).drawImage(img, { x: 0, y: 0, width: v1.width, height: v1.height });
+              c.width = c.height = 0; prog(i / n);
+            });
+        });
+      })(i);
+      return seq;
+    }).then(function () { return out.save(); }).then(function (bytes) { return finishCompress(f, pdfBlob(bytes), n); });
+  }
+
   function finishCompress(f, blob, pages) {
     var better = blob.size < f.size;
     return loadDoc(f).then(function (d) { return d.getPageCount(); }).catch(function () { return pages; }).then(function (n) {
@@ -769,7 +795,7 @@
         files: [{ name: base(f.name) + "-compressed.pdf", blob: better ? blob : f }],
         pages: n || pages,
         note: better ? "Reduced from " + size(f.size) + " to " + size(blob.size) + " (−" + Math.round(100 - blob.size / f.size * 100) + "%)."
-          : "This file is already well optimised – we kept the original (" + size(f.size) + "). Try a lower DPI or quality."
+          : "This file is already well optimised – you keep your original (" + size(f.size) + "). Try a lower DPI or quality."
       };
     });
   }

@@ -36,7 +36,7 @@ T = [
   [("Can I rotate only some pages?","Yes, type the pages (e.g. 2-4) or leave empty for all.")],"rotate"),
  ("compress-pdf","Compress PDF","🗜","#8f3e20","Make PDFs smaller for email and upload.","Compress PDF to a smaller size",
   "Shrink PDF file size right in your browser. Choose a light lossless pass or stronger compression that re-renders pages as optimised images.",
-  ["Add your PDF.","Pick a compression level.","Download the smaller file – we keep the original if we can't improve it."],
+  ["Add your PDF.","Pick a compression level.","Download the smaller file – you keep your original if it can't be improved."],
   [("Will text stay selectable?","If you choose “Optimise structure only”, yes. Re-rendering pages as images gives much smaller files, but text is no longer selectable. You can set DPI and image quality and see an estimated size first.")],"compress"),
  ("pdf-to-jpg","PDF to JPG","🖼","#d49a3a","Turn every page into an image.","Convert PDF to JPG or PNG",
   "Export each PDF page as a high-quality JPG or PNG image, locally and without uploads.",

@@ -240,4 +240,5 @@ header.site .logo svg{width:24px;height:24px}
 .ed-card{background:var(--cream,#fffaf1);border-radius:16px;padding:1rem;width:min(560px,100%);display:grid;gap:.6rem}
 .ed-pad{width:100%;height:auto;aspect-ratio:3/1;border:1.5px dashed var(--sand-d);border-radius:12px;background:#fff;touch-action:none;cursor:crosshair}
 .ed-row{display:flex;gap:.5rem;justify-content:flex-end}
-@media(max-width:700px){.ed-sizel{margin-left:0}.ed-bar .btn{padding:.35rem .55rem}.ed-grip{left:-2px;top:-24px}}
+@media(max-width:700px){.ed-sizel{margin-left:0}.ed-bar .btn{padding:.35rem .55rem}.ed-grip{left:-2px;top:-24px}}.wbox .wcookie{font-size:1.05rem;margin:0 0 1rem;line-height:1.4}
+.wbox .wbtns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
